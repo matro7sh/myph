@@ -4,7 +4,8 @@ package cli
 func GetDefaultCLIOptions() Options {
     opts := Options{
         ShellcodePath: "",
-        Outfile: "slipak",
+        AesKey: "VerySecretAESKey",
+        Outfile: "myph-out",
     }
 
     return opts

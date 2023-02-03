@@ -7,4 +7,7 @@ type Options struct {
 
     // Outfile path
     Outfile string
+
+    // AES shellcode encryption secret
+    AesKey string
 }

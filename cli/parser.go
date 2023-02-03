@@ -2,6 +2,8 @@ package cli
 
 import (
 	"github.com/spf13/cobra"
+
+    "github.com/cmepw/myph/loader"
 )
 
 func GetParser(opts *Options) *cobra.Command {
@@ -23,6 +25,7 @@ func GetParser(opts *Options) *cobra.Command {
 
     cmd.PersistentFlags().StringVarP(&opts.Outfile, "outfile", "o", defaults.Outfile, "output filepath")
     cmd.PersistentFlags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
+    cmd.PersistentFlags().StringVarP(&opts.AesKey, "aes-key", "a", defaults.AesKey, "aes shellcode encryption key")
 
     return cmd
 }
