@@ -9,5 +9,5 @@ type Options struct {
     Outfile string
 
     // AES shellcode encryption secret
-    AesKey string
+    AesKey []byte
 }

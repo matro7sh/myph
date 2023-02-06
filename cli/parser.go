@@ -20,16 +20,17 @@ func GetParser(opts *Options) *cobra.Command {
         Long: `CLI to prepare your shellcode and do AV/EDR bypass`,
         Run: func(cmd *cobra.Command, args []string) {
 
-            pre_encrypted_payload, err := loader.ReadFile(opts.ShellcodePath); if err != nil {
-                fmt.Println("Read shellcode error: %s", err.Error())
+            if opts.ShellcodePath == "" {
+                fmt.Println("[!] Please specify your shellcode's path with -s")
                 os.Exit(1)
             }
 
-            payload, err := loader.EncryptPayload(pre_encrypted_payload, []byte(opts.AesKey)); if err != nil {
-                fmt.Println("Encryption error: %s", err.Error())
+            plaintext_payload, err := loader.ReadFile(opts.ShellcodePath); if err != nil {
+                fmt.Printf("[!] Read shellcode error: %s\n", err.Error())
                 os.Exit(1)
             }
 
+            payload := loader.Encrypt(opts.AesKey, plaintext_payload)
             s := loader.Shellcode{
                 Payload: payload,
                 Filename: opts.Outfile,
@@ -38,16 +39,27 @@ func GetParser(opts *Options) *cobra.Command {
 
             toCompile := loader.LoadWindowsTemplate(s)
             err  = loader.WriteToTempfile(toCompile); if err != nil {
-                fmt.Println("Write error: %s", err.Error())
+                fmt.Printf("Write error: %s\n", err.Error())
                 os.Exit(1)
             }
 
+            os.Setenv("GOOS", "windows")
+
             /* run compilation */
-            err = exec.Command("go", "build", "-ldflags", "-w -s -H=windowsgui", "-o", s.Filename, "tmp.go").Run()
-            if err != nil {
+            err = exec.Command(
+                "go",
+                "build",
+                "-ldflags",
+                "-s -w -H=windowsgui",
+                "-o",
+                s.Filename,
+                "tmp.go",
+            ).Run(); if err != nil {
                 println("[!] Compile error: " + err.Error())
                 return
             }
+
+            os.Remove("tmp.go")
         },
     }
 
@@ -55,7 +67,7 @@ func GetParser(opts *Options) *cobra.Command {
 
     cmd.PersistentFlags().StringVarP(&opts.Outfile, "outfile", "o", defaults.Outfile, "output filepath")
     cmd.PersistentFlags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
-    cmd.PersistentFlags().StringVarP(&opts.AesKey, "aes-key", "a", defaults.AesKey, "aes shellcode encryption key")
+    cmd.PersistentFlags().BytesHexVarP(&opts.AesKey, "aes-key", "a", defaults.AesKey, "AES key for shellcode encryption")
 
     return cmd
 }
