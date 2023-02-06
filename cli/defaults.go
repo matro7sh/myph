@@ -9,12 +9,13 @@ func GetDefaultCLIOptions() Options {
     opts := Options{
         ShellcodePath: "",
         AesKey: RandBytes(32),
-        Outfile: "myph-out",
+        Outfile: "myph-out.exe",
     }
 
     return opts
 }
 
+// Generate a random list of bytes
 func RandBytes(length int) []byte {
     b := make([]byte, length)
     rand.Read(b)

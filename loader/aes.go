@@ -16,16 +16,3 @@ func Encrypt(key []byte, plaintext []byte) []byte {
     c.Encrypt(out, plaintext)
     return out
 }
-
-func DecryptAES(key []byte, payload []byte) string {
-
-    c, err := aes.NewCipher(key); if err != nil {
-        fmt.Printf("[!] cipher gen: %s\n", err.Error())
-        os.Exit(1)
-    }
-
-    plaintext := make([]byte, len(payload))
-    c.Decrypt(plaintext, payload)
-    s := string(plaintext[:])
-    return s
-}

