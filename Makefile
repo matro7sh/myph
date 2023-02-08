@@ -19,4 +19,4 @@ clean: ## clean up the project directory
 
 .PHONY: docker
 docker: ## build a local docker image
-	@docker build . -t gork:latest
+	@docker build . -t $(TARGET):latest
