@@ -10,4 +10,7 @@ type Shellcode struct {
 
     // AES key used for encryption & decrpytion
     AesKey []byte
+
+    // target process name to inject
+    Target string
 }

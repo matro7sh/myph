@@ -12,6 +12,7 @@ func GetDefaultCLIOptions() Options {
         Outfile: "myph-out.exe",
         OS: "windows",
         arch: "amd64",
+        Target: "explorer.exe",
     }
 
     return opts

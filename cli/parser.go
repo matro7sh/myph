@@ -3,10 +3,7 @@ package cli
 import (
 	"fmt"
 	"os"
-	"os/exec"
-
 	"github.com/spf13/cobra"
-
 	"github.com/cmepw/myph/loader"
 )
 
@@ -36,10 +33,13 @@ func GetParser(opts *Options) *cobra.Command {
                 os.Exit(1)
             }
 
+            os.Setenv("GOOS", opts.OS)
+            os.Setenv("GOARCH", opts.arch)
             s := loader.Shellcode{
                 Payload: payload,
                 Filename: opts.Outfile,
                 AesKey: []byte(opts.AesKey),
+                Target: opts.Target,
             }
 
             fmt.Println("[+] Encrypted shellcode with AES key")
@@ -52,22 +52,7 @@ func GetParser(opts *Options) *cobra.Command {
             fmt.Println("[+] loaded Windows template")
 
             /* run compilation */
-            os.Setenv("GOOS", opts.OS)
-            os.Setenv("GOARCH", opts.arch)
-            err = exec.Command(
-                "go",
-                "build",
-                "-ldflags",
-                "-s -w -H=windowsgui",
-                "-o",
-                s.Filename,
-                "tmp.go",
-            ).Run(); if err != nil {
-                println("[!] Compile error: " + err.Error())
-                return
-            }
-            fmt.Println("[+] Successfully compiled shellcode")
-            os.Remove("tmp.go")
+            loader.Compile(s)
         },
     }
 
@@ -78,6 +63,7 @@ func GetParser(opts *Options) *cobra.Command {
     cmd.PersistentFlags().BytesHexVarP(&opts.AesKey, "aes-key", "a", defaults.AesKey, "AES key for shellcode encryption")
     cmd.PersistentFlags().StringVarP(&opts.arch, "arch", "r", defaults.arch, "architecture compilation target")
     cmd.PersistentFlags().StringVarP(&opts.OS, "os", "o", defaults.OS, "OS compilation target")
+    cmd.PersistentFlags().StringVarP(&opts.Target, "target-process", "t", defaults.Target, "target for process injection")
 
     return cmd
 }

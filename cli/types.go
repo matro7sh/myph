@@ -16,4 +16,7 @@ type Options struct {
 
     // arch compilation target
     arch string
+
+    // target process name to inject
+    Target string
 }
