@@ -3,16 +3,31 @@ package loader
 import (
 	"crypto/aes"
 	"fmt"
-	"os"
+
+    "crypto/cipher"
+    "crypto/rand"
+    "io"
 )
 
-func Encrypt(key []byte, plaintext []byte) []byte {
-    c, err := aes.NewCipher(key); if err != nil {
-        fmt.Printf("[!] cipher gen: %s\n", err.Error())
-        os.Exit(1)
+func ToString(payload []byte) string {
+    return fmt.Sprint([]byte(payload))
+}
+
+func Encrypt(key []byte, plaintext []byte) ([]byte, error) {
+    c, err := aes.NewCipher(key)
+    if err != nil {
+        return nil, err
     }
 
-    out := make([]byte, len(plaintext))
-    c.Encrypt(out, plaintext)
-    return out
+    gcm, err := cipher.NewGCM(c)
+    if err != nil {
+        return nil, err
+    }
+
+    nonce := make([]byte, gcm.NonceSize())
+    if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+        return nil, err
+    }
+
+    return gcm.Seal(nonce, nonce, plaintext, nil), nil
 }

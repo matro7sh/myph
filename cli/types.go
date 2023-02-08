@@ -10,4 +10,10 @@ type Options struct {
 
     // AES shellcode encryption secret
     AesKey []byte
+
+    // os compilation target
+    OS string
+
+    // arch compilation target
+    arch string
 }

