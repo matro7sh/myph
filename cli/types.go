@@ -2,21 +2,21 @@ package cli
 
 type Options struct {
 
-    // Shellcode path
-    ShellcodePath string
+	// Shellcode path
+	ShellcodePath string
 
-    // Outfile path
-    Outfile string
+	// Outfile path
+	Outfile string
 
-    // AES shellcode encryption secret
-    AesKey []byte
+	// AES shellcode encryption secret
+	AesKey []byte
 
-    // os compilation target
-    OS string
+	// os compilation target
+	OS string
 
-    // arch compilation target
-    arch string
+	// arch compilation target
+	arch string
 
-    // target process name to inject
-    Target string
+	// target process name to inject
+	Target string
 }

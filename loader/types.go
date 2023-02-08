@@ -1,16 +1,15 @@
-package loader;
-
+package loader
 
 type Shellcode struct {
-    // payload in bytes
-    Payload []byte
+	// payload in bytes
+	Payload []byte
 
-    // output filename
-    Filename string
+	// output filename
+	Filename string
 
-    // AES key used for encryption & decrpytion
-    AesKey []byte
+	// AES key used for encryption & decrpytion
+	AesKey []byte
 
-    // target process name to inject
-    Target string
+	// target process name to inject
+	Target string
 }

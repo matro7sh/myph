@@ -6,11 +6,11 @@ import (
 
 func LoadWindowsTemplate(s Shellcode) string {
 
-    hexShellcode := ToString(s.Payload)
-    hexKey := ToString(s.AesKey)
-    hexTarget := ToString([]byte(s.Target))
+	hexShellcode := ToString(s.Payload)
+	hexKey := ToString(s.AesKey)
+	hexTarget := ToString([]byte(s.Target))
 
-    return fmt.Sprintf(`
+	return fmt.Sprintf(`
 package main
 
 import (
