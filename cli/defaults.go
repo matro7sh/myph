@@ -7,12 +7,13 @@ import (
 // Get default value for Options struct
 func GetDefaultCLIOptions() Options {
 	opts := Options{
-		ShellcodePath: "",
-		AesKey:        RandBytes(32),
-		Outfile:       "myph-out.exe",
-		OS:            "windows",
-		arch:          "amd64",
-		Target:        "explorer.exe",
+		ShellcodePath:  "msf.raw",
+		Outfile:        "myph-out",
+		OS:             "windows",
+		arch:           "amd64",
+		Target:         "",
+        Encryption:     encKindAES,
+        Key:            "",
 	}
 
 	return opts

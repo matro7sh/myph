@@ -1,15 +1,14 @@
 package loader
 
 import (
-	"bufio"
 	"bytes"
+	"fmt"
 	"io"
-	"log"
 	"os"
 )
 
-func ReadFile(filepath string) ([]byte, error) {
 
+func ReadFile(filepath string) ([]byte, error) {
 	buf := bytes.NewBuffer(nil)
 	f, err := os.Open(filepath)
 	if err != nil {
@@ -22,23 +21,60 @@ func ReadFile(filepath string) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func WriteToTempfile(payload string) error {
-	// create file
-	f, err := os.Create("tmp.go")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
+func DirExists(dir string) (bool, error) {
+    _, err := os.Stat(dir)
+    if err == nil {
+        return true, nil
+    }
 
-	buffer := bufio.NewWriter(f)
-	_, err = buffer.WriteString(payload + "\n")
-	if err != nil {
-		log.Fatal(err)
-	}
+    if os.IsNotExist(err) {
+        return false, nil
+    }
+    return false, err
+}
 
-	// flush buffered data to the file
-	if err := buffer.Flush(); err != nil {
-		log.Fatal(err)
-	}
-	return nil
+func CreateTmpProjectRoot(path string) error {
+
+    /*
+        create a directory with the path name
+        defined by the options
+    */
+
+    exists, err := DirExists(path)
+    if err != nil {
+        return err
+    }
+
+    if exists {
+        os.RemoveAll(path)
+    }
+
+    err = os.MkdirAll(path, 0777)
+    if err != nil {
+        return err
+    }
+
+    var go_mod = []byte(`
+        module github.com/cmepw/myph
+
+        go 1.20
+
+    `)
+
+    gomod_path := fmt.Sprintf("%s/go.mod", path)
+    fo, err := os.Create(gomod_path)
+    fo.Write(go_mod)
+
+    fmt.Println("[+] Project root created....")
+
+    maingo_path := fmt.Sprintf("%s/main.go", path)
+    _, _ = os.Create(maingo_path)
+
+    execgo_path := fmt.Sprintf("%s/exec.go", path)
+    _, _ = os.Create(execgo_path)
+
+    encryptgo_path := fmt.Sprintf("%s/main.go", path)
+    _, _ = os.Create(encryptgo_path)
+
+    return nil
 }
