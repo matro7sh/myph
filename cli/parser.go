@@ -30,6 +30,17 @@ func GetParser(opts *Options) *cobra.Command {
                 os.Exit(1)
             }
 
+            shellcode, err := loader.ReadFile(opts.ShellcodePath)
+            if err != nil {
+                fmt.Printf("[!] Error reading shellcode file: %s", err)
+                os.Exit(1)
+            }
+
+            encType := loader.SelectRandomEncodingType()
+            shellcodeAsString := loader.EncodeForInterpolation(encType, shellcode)
+
+            fmt.Println(shellcodeAsString)
+
 			os.Setenv("GOOS", opts.OS)
 			os.Setenv("GOARCH", opts.arch)
         },
