@@ -1,4 +1,4 @@
-package loader
+package tools
 
 import (
 	"errors"
@@ -54,6 +54,7 @@ func SelectRandomEncodingType() BytesEncodingType {
 
 /// Encode a series of bytes so that it can be interpolated into a template
 func EncodeForInterpolation(method BytesEncodingType, toEncode []byte) string {
+
     switch method {
 
     case EncodingBase64:

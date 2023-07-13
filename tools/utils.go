@@ -1,12 +1,22 @@
-package loader
+package tools
 
 import (
 	"bytes"
 	"fmt"
 	"io"
 	"os"
+    "math/rand"
 )
 
+
+func RandomString(n int) string {
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	s := make([]rune, n)
+	for i := range s {
+		s[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(s)
+}
 
 func ReadFile(filepath string) ([]byte, error) {
 	buf := bytes.NewBuffer(nil)
@@ -58,7 +68,6 @@ func CreateTmpProjectRoot(path string) error {
         module github.com/cmepw/myph
 
         go 1.20
-
     `)
 
     gomod_path := fmt.Sprintf("%s/go.mod", path)
@@ -73,8 +82,36 @@ func CreateTmpProjectRoot(path string) error {
     execgo_path := fmt.Sprintf("%s/exec.go", path)
     _, _ = os.Create(execgo_path)
 
-    encryptgo_path := fmt.Sprintf("%s/main.go", path)
+    encryptgo_path := fmt.Sprintf("%s/encrypt.go", path)
     _, _ = os.Create(encryptgo_path)
 
     return nil
+}
+
+func GetMainTemplate(encoding string, key string, sc string) string {
+    return fmt.Sprintf(`
+        package main
+
+        import (
+            enc "encoding/%s"
+        )
+
+        var Key = %s
+        var Code = %s
+
+        func main() {
+
+            decodedSc := enc.DecodeFromString(Code)
+            decodedKey := enc.DecodeFromString(Key)
+
+            decrypted, err := Decrypt(decodedSc, decodedKey)
+            if err != nil {
+                return nil
+            }
+
+            ExecuteOrderSixtySix(decrypted)
+        }
+
+    `, encoding, key, sc)
+
 }

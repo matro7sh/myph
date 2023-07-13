@@ -6,10 +6,9 @@ import "errors"
 type encKind string
 
 const (
-    encKindAES encKind = "AES"
-    encKindXOR encKind = "XOR"
-    encKindRSA encKind = "RSA"
-    encKindBLF encKind = "Blowfish"
+    EncKindAES encKind = "AES"
+    EncKindXOR encKind = "XOR"
+    EncKindBLF encKind = "Blowfish"
 )
 
 // String is used both by fmt.Print and by Cobra in help text
@@ -20,11 +19,11 @@ func (e *encKind) String() string {
 // Set must have pointer receiver so it doesn't change the value of a copy
 func (e *encKind) Set(v string) error {
     switch v {
-    case "AES", "XOR", "RSA", "Blowfish":
+    case "AES", "XOR":
         *e = encKind(v)
         return nil
     default:
-        return errors.New(`must be one of "AES", "XOR", "RSA" or "Blowfish"`)
+        return errors.New(`must be one of "AES" or "XOR"`)
     }
 }
 

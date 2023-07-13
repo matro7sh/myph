@@ -12,7 +12,7 @@ func GetDefaultCLIOptions() Options {
 		OS:             "windows",
 		arch:           "amd64",
 		Target:         "",
-        Encryption:     encKindAES,
+        Encryption:     EncKindAES,
         Key:            "",
 	}
 
