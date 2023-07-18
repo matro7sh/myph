@@ -24,22 +24,26 @@ func GetParser(opts *Options) *cobra.Command {
 				os.Exit(1)
 			}
 
+            /* later, we will call "go build" on a golang project, so we need to set up the project tree */
             err := tools.CreateTmpProjectRoot(opts.Outfile)
             if err != nil {
                 fmt.Printf("[!] Error generating project root: %s", err)
                 os.Exit(1)
             }
 
+            /* reading the shellcode as a series of bytes */
             shellcode, err := tools.ReadFile(opts.ShellcodePath)
             if err != nil {
                 fmt.Printf("[!] Error reading shellcode file: %s", err)
                 os.Exit(1)
             }
 
+            /* i got 99 problems but generating a random key aint one */
             if opts.Key == "" {
-                opts.Key = tools.RandomString(64)
+                opts.Key = tools.RandomString(32)
             }
 
+            /* encoding defines the way the series of bytes will be written into the template */
             encType := tools.SelectRandomEncodingType()
 
             /*
@@ -59,7 +63,7 @@ func GetParser(opts *Options) *cobra.Command {
                     encrypted, err = tools.EncryptAES(shellcode, []byte(opts.Key))
                     if err != nil {
                         fmt.Println("[!] Could not encrypt with AES")
-                        os.Exit(1)
+                        panic(err)
                     }
                     template = tools.GetAESTemplate()
 
@@ -68,7 +72,7 @@ func GetParser(opts *Options) *cobra.Command {
                     encrypted, err = tools.EncryptXOR(shellcode, []byte(opts.Key))
                     if err != nil {
                         fmt.Println("[!] Could not encrypt with XOR")
-                        os.Exit(1)
+                        panic(err)
                     }
                     template = tools.GetXORTemplate()
             }

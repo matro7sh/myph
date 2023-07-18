@@ -4,10 +4,18 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"errors"
 	"fmt"
+	"io"
 
 	"golang.org/x/crypto/blowfish"
 )
+
+/*
+   TODO:
+
+   add support for CHACHA20
+*/
 
 func GetBlowfishTemplate() string {
     return fmt.Sprintf(`
@@ -42,31 +50,28 @@ func GetAESTemplate() string {
     import (
         "crypto/aes"
         "crypto/cipher"
+        "errors"
         "fmt"
     )
 
     func Decrypt(encrypted []byte, key []byte) ([]byte, error) {
-        block, err := aes.NewCipher(key)
+        c, err := aes.NewCipher(key)
         if err != nil {
             return nil, err
         }
 
-        gcm, err := cipher.NewGCM(block)
+        gcm, err := cipher.NewGCM(c)
         if err != nil {
             return nil, err
         }
 
         nonceSize := gcm.NonceSize()
         if len(encrypted) < nonceSize {
-            return nil, fmt.Errorf("invalid encrypted data")
+            return nil, errors.New("ciphertext too short")
         }
-        nonce := encrypted[:nonceSize]
-        encrypted = encrypted[nonceSize:]
-        decrypted, err := gcm.Open(nil, nonce, encrypted, nil)
-        if err != nil {
-            return nil, err
-        }
-        return decrypted, nil
+
+        nonce, ciphertext := encrypted[:nonceSize], encrypted[nonceSize:]
+        return gcm.Open(nil, nonce, ciphertext, nil)
     }
     `)
 }
@@ -136,46 +141,40 @@ func DecryptXOR(toDecrypt []byte, key []byte) ([]byte, error) {
 }
 
 func EncryptAES(toEncrypt []byte, key []byte) ([]byte, error) {
-    block, err := aes.NewCipher(key)
+    c, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
 	}
 
-	gcm, err := cipher.NewGCM(block)
+	gcm, err := cipher.NewGCM(c)
 	if err != nil {
 		return nil, err
 	}
 
 	nonce := make([]byte, gcm.NonceSize())
-	if _, err := rand.Read(nonce); err != nil {
+	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
 		return nil, err
 	}
 
-	encrypted := gcm.Seal(nil, nonce, toEncrypt, nil)
-	encrypted = append(nonce, encrypted...)
-	return encrypted, nil
+	return gcm.Seal(nonce, nonce, toEncrypt, nil), nil
 }
 
 func DecryptAES(encrypted []byte, key []byte) ([]byte, error) {
-    block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
+    c, err := aes.NewCipher(key)
+    if err != nil {
+        return nil, err
+    }
 
-	gcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return nil, err
-	}
+    gcm, err := cipher.NewGCM(c)
+    if err != nil {
+        return nil, err
+    }
 
-	nonceSize := gcm.NonceSize()
-	if len(encrypted) < nonceSize {
-		return nil, fmt.Errorf("invalid encrypted data")
-	}
-	nonce := encrypted[:nonceSize]
-	encrypted = encrypted[nonceSize:]
-	decrypted, err := gcm.Open(nil, nonce, encrypted, nil)
-	if err != nil {
-		return nil, err
-	}
-	return decrypted, nil
+    nonceSize := gcm.NonceSize()
+    if len(encrypted) < nonceSize {
+        return nil, errors.New("ciphertext too short")
+    }
+
+    nonce, ciphertext := encrypted[:nonceSize], encrypted[nonceSize:]
+    return gcm.Open(nil, nonce, ciphertext, nil)
 }

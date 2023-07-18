@@ -1,12 +1,13 @@
 package tools
 
 import (
+	b32 "encoding/base32"
+	b64 "encoding/base64"
+	hex "encoding/hex"
 	"errors"
+	"fmt"
 	"math/rand"
 	"time"
-    b64 "encoding/base64"
-    b32 "encoding/base32"
-    hex "encoding/hex"
 )
 
 /// Enum type that defines which bytes encoding to use
@@ -58,13 +59,13 @@ func EncodeForInterpolation(method BytesEncodingType, toEncode []byte) string {
     switch method {
 
     case EncodingBase64:
-        return b64.StdEncoding.EncodeToString(toEncode)
+        return fmt.Sprintf("\"%s\"", b64.StdEncoding.EncodeToString(toEncode))
 
     case EncodingBase32:
-        return b32.StdEncoding.EncodeToString(toEncode)
+        return fmt.Sprintf("\"%s\"", b32.StdEncoding.EncodeToString(toEncode))
 
     case EncodingHex:
-        return hex.EncodeToString(toEncode)
+        return fmt.Sprintf("\"%s\"", hex.EncodeToString(toEncode))
 
     default:
         return ""
