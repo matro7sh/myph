@@ -8,18 +8,17 @@ import (
 	"os"
 )
 
-
 func WriteToFile(outfile string, filname string, toWrite string) error {
 
-    full_path := fmt.Sprintf("%s/%s", outfile, filname)
-    file, err := os.OpenFile(full_path, os.O_TRUNC | os.O_WRONLY, 0644)
-    if err != nil {
-        return err
-    }
+	full_path := fmt.Sprintf("%s/%s", outfile, filname)
+	file, err := os.OpenFile(full_path, os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
 
-    file.WriteString(toWrite)
-    file.Close()
-    return nil
+	file.WriteString(toWrite)
+	file.Close()
+	return nil
 }
 
 func RandomString(n int) string {
@@ -45,65 +44,65 @@ func ReadFile(filepath string) ([]byte, error) {
 }
 
 func DirExists(dir string) (bool, error) {
-    _, err := os.Stat(dir)
-    if err == nil {
-        return true, nil
-    }
+	_, err := os.Stat(dir)
+	if err == nil {
+		return true, nil
+	}
 
-    if os.IsNotExist(err) {
-        return false, nil
-    }
-    return false, err
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
 }
 
 func CreateTmpProjectRoot(path string) error {
 
-    /*
-        create a directory with the path name
-        defined by the options
-    */
+	/*
+	   create a directory with the path name
+	   defined by the options
+	*/
 
-    exists, err := DirExists(path)
-    if err != nil {
-        return err
-    }
+	exists, err := DirExists(path)
+	if err != nil {
+		return err
+	}
 
-    if exists {
-        os.RemoveAll(path)
-    }
+	if exists {
+		os.RemoveAll(path)
+	}
 
-    err = os.MkdirAll(path, 0777)
-    if err != nil {
-        return err
-    }
+	err = os.MkdirAll(path, 0777)
+	if err != nil {
+		return err
+	}
 
-    var go_mod = []byte(`
+	var go_mod = []byte(`
 module github.com/cmepw/myph
 
 go 1.20
 
     `)
 
-    gomod_path := fmt.Sprintf("%s/go.mod", path)
-    fo, err := os.Create(gomod_path)
-    fo.Write(go_mod)
+	gomod_path := fmt.Sprintf("%s/go.mod", path)
+	fo, err := os.Create(gomod_path)
+	fo.Write(go_mod)
 
-    fmt.Println("[+] Project root created....")
+	fmt.Println("[+] Project root created....")
 
-    maingo_path := fmt.Sprintf("%s/main.go", path)
-    _, _ = os.Create(maingo_path)
+	maingo_path := fmt.Sprintf("%s/main.go", path)
+	_, _ = os.Create(maingo_path)
 
-    execgo_path := fmt.Sprintf("%s/exec.go", path)
-    _, _ = os.Create(execgo_path)
+	execgo_path := fmt.Sprintf("%s/exec.go", path)
+	_, _ = os.Create(execgo_path)
 
-    encryptgo_path := fmt.Sprintf("%s/encrypt.go", path)
-    _, _ = os.Create(encryptgo_path)
+	encryptgo_path := fmt.Sprintf("%s/encrypt.go", path)
+	_, _ = os.Create(encryptgo_path)
 
-    return nil
+	return nil
 }
 
 func GetMainTemplate(encoding string, key string, sc string) string {
-    return fmt.Sprintf(`
+	return fmt.Sprintf(`
 package main
 
 import (

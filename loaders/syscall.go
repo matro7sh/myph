@@ -4,9 +4,8 @@ import (
 	"fmt"
 )
 
-
 func GetSyscallTemplate() string {
-    return fmt.Sprintf(`
+	return fmt.Sprintf(`
 package main
 
 import (

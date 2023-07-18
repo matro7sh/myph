@@ -18,7 +18,7 @@ import (
 */
 
 func GetBlowfishTemplate() string {
-    return fmt.Sprintf(`
+	return fmt.Sprintf(`
 package main
 
 import (
@@ -44,7 +44,7 @@ func Decrypt(toDecrypt []byte, key []byte) (error, []byte) {
 }
 
 func GetAESTemplate() string {
-    return fmt.Sprintf(`
+	return fmt.Sprintf(`
 package main
 
 import (
@@ -76,7 +76,7 @@ func Decrypt(encrypted []byte, key []byte) ([]byte, error) {
 }
 
 func GetXORTemplate() string {
-    return fmt.Sprintf(`
+	return fmt.Sprintf(`
 package main
 
 func Decrypt(toDecrypt []byte, key []byte) ([]byte, error) {
@@ -97,7 +97,7 @@ func EncryptBlowfish(toCrypt []byte, key []byte) (error, []byte) {
 		return nil, []byte{}
 	}
 
-	ciphertext := make([]byte, blowfish.BlockSize + len(toCrypt))
+	ciphertext := make([]byte, blowfish.BlockSize+len(toCrypt))
 	eiv := ciphertext[:blowfish.BlockSize]
 	ecbc := cipher.NewCBCEncrypter(ecipher, eiv)
 	ecbc.CryptBlocks(ciphertext[blowfish.BlockSize:], toCrypt)
@@ -120,27 +120,27 @@ func DecryptBlowfish(toDecrypt []byte, key []byte) (error, []byte) {
 }
 
 func EncryptXOR(toEncrypt []byte, key []byte) ([]byte, error) {
-    encrypted := make([]byte, len(toEncrypt))
-    keyLen := len(key)
+	encrypted := make([]byte, len(toEncrypt))
+	keyLen := len(key)
 
 	for i, b := range toEncrypt {
-		encrypted[i] = b ^ key[i % keyLen]
+		encrypted[i] = b ^ key[i%keyLen]
 	}
 	return encrypted, nil
 }
 
 func DecryptXOR(toDecrypt []byte, key []byte) ([]byte, error) {
-    encrypted := make([]byte, len(toDecrypt))
-    keyLen := len(key)
+	encrypted := make([]byte, len(toDecrypt))
+	keyLen := len(key)
 
 	for i, b := range toDecrypt {
-		encrypted[i] = b ^ key[i % keyLen]
+		encrypted[i] = b ^ key[i%keyLen]
 	}
 	return encrypted, nil
 }
 
 func EncryptAES(toEncrypt []byte, key []byte) ([]byte, error) {
-    c, err := aes.NewCipher(key)
+	c, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
 	}
@@ -159,21 +159,21 @@ func EncryptAES(toEncrypt []byte, key []byte) ([]byte, error) {
 }
 
 func DecryptAES(encrypted []byte, key []byte) ([]byte, error) {
-    c, err := aes.NewCipher(key)
-    if err != nil {
-        return nil, err
-    }
+	c, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
 
-    gcm, err := cipher.NewGCM(c)
-    if err != nil {
-        return nil, err
-    }
+	gcm, err := cipher.NewGCM(c)
+	if err != nil {
+		return nil, err
+	}
 
-    nonceSize := gcm.NonceSize()
-    if len(encrypted) < nonceSize {
-        return nil, errors.New("ciphertext too short")
-    }
+	nonceSize := gcm.NonceSize()
+	if len(encrypted) < nonceSize {
+		return nil, errors.New("ciphertext too short")
+	}
 
-    nonce, ciphertext := encrypted[:nonceSize], encrypted[nonceSize:]
-    return gcm.Open(nil, nonce, ciphertext, nil)
+	nonce, ciphertext := encrypted[:nonceSize], encrypted[nonceSize:]
+	return gcm.Open(nil, nonce, ciphertext, nil)
 }
