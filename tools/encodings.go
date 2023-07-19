@@ -3,6 +3,7 @@ package tools
 import (
 	b32 "encoding/base32"
 	b64 "encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -20,7 +21,7 @@ const (
 )
 
 // / Available encodings type
-var Encodings = [2]string{"base64", "base32"}
+var Encodings = [3]string{"base64", "base32", "hex"}
 
 // String is used both by fmt.Print and by Cobra in help text
 func (e *BytesEncodingType) String() string {
@@ -30,11 +31,11 @@ func (e *BytesEncodingType) String() string {
 // / Set must have pointer receiver so it doesn't change the value of a copy
 func (e *BytesEncodingType) Set(v string) error {
 	switch v {
-	case "base64", "base32":
+	case "base64", "base32", "hex":
 		*e = BytesEncodingType(v)
 		return nil
 	default:
-		return errors.New(`must be one of "base64", "base32"`)
+		return errors.New(`unknown encoding type`)
 	}
 }
 
@@ -62,10 +63,8 @@ func EncodeForInterpolation(method BytesEncodingType, toEncode []byte) string {
 	case EncodingBase32:
 		return fmt.Sprintf("\"%s\"", b32.StdEncoding.EncodeToString(toEncode))
 
-    /*
 	case EncodingHex:
 		return fmt.Sprintf("\"%s\"", hex.EncodeToString(toEncode))
-    */
 
 	default:
 		return ""

