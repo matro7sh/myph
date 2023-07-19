@@ -92,7 +92,7 @@ func GetParser(opts *Options) *cobra.Command {
 			}
 
 			/* TODO: add support for more exec templates */
-			err = tools.WriteToFile(opts.Outdir, "exec.go", loaders.GetSyscallTemplate())
+			err = tools.WriteToFile(opts.Outdir, "exec.go", loaders.GetSyscallTemplate(opts.Target))
 
 			os.Setenv("GOOS", opts.OS)
 			os.Setenv("GOARCH", opts.arch)
@@ -115,6 +115,7 @@ func GetParser(opts *Options) *cobra.Command {
 
 	cmd.PersistentFlags().StringVarP(&opts.Outdir, "outdir", "f", defaults.Outdir, "output directory")
 	cmd.PersistentFlags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
+    cmd.PersistentFlags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
 
 	cmd.PersistentFlags().StringVarP(&opts.arch, "arch", "r", defaults.arch, "architecture compilation target")
 	cmd.PersistentFlags().StringVarP(&opts.OS, "os", "o", defaults.OS, "OS compilation target")

