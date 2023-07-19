@@ -97,16 +97,17 @@ func GetParser(opts *Options) *cobra.Command {
 			os.Setenv("GOOS", opts.OS)
 			os.Setenv("GOARCH", opts.arch)
 
-			execCmd := exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", "main.go")
+			execCmd := exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", ".")
 			execCmd.Dir = opts.Outdir
 
-			stdout, stderr := execCmd.Output()
+			_, stderr := execCmd.Output()
 
-			if string(stdout) == "" {
-				print(stderr)
+			if stderr != nil {
+                fmt.Printf("[!] error compiling shellcode: %s\n", stderr.Error())
 				os.Exit(1)
 			}
 
+            println("[+] Done! You may find your payload in out directory...")
 		},
 	}
 

