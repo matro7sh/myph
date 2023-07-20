@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func GetSyscallTemplate(targetProcess string) string {
+func GetCRTTemplate(targetProcess string) string {
 	return fmt.Sprintf(`
 package main
 

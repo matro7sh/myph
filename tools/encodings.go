@@ -17,7 +17,7 @@ type BytesEncodingType string
 const (
 	EncodingBase64 BytesEncodingType = "base64"
 	EncodingBase32 BytesEncodingType = "base32"
-    EncodingHex    BytesEncodingType = "hex" // FIXME(djnn): update main template to support this
+    EncodingHex    BytesEncodingType = "hex"
 )
 
 // / Available encodings type

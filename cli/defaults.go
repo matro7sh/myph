@@ -11,7 +11,7 @@ func GetDefaultCLIOptions() Options {
 		Outdir:        "myph-out",
 		OS:            "windows",
 		arch:          "amd64",
-		Target:        "",
+		Target:        "cmd.exe",
 		Encryption:    EncKindAES,
 		Key:           "",
 	}
