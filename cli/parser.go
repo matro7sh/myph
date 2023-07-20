@@ -120,7 +120,6 @@ func GetParser(opts *Options) *cobra.Command {
 				panic(err)
 			}
 
-			/* TODO: add support for more exec templates */
 			err = tools.WriteToFile(opts.Outdir, "exec.go", loaders.GetCRTTemplate(opts.Target))
 			if err != nil {
 				panic(err)

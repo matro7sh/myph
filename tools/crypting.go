@@ -11,12 +11,6 @@ import (
 	"golang.org/x/crypto/blowfish"
 )
 
-/*
-   TODO:
-
-   add support for CHACHA20
-*/
-
 func GetBlowfishTemplate() string {
 	return fmt.Sprintf(`
 package main

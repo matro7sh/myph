@@ -1,0 +1,23 @@
+
+This is the stuff that needs to be fixed before 2.0 Release
+can be validated.
+
+
+Encryption:
+
+    -> add support for chacha20
+    -> re-introduce support for blowfish
+
+
+Templates:
+
+    -> add support for variable sleep & jitter methods
+        - can added into main.go template & should be optional
+    -> add ProcessHollowing template & syscall method
+    -> add template for loading dlls & win32 api calls through PEB
+    -> add to TODO plan for indirect syscalls
+
+
+Documentation:
+
+    -> add a guide on how to contribute ?
