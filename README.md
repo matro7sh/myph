@@ -15,9 +15,6 @@ or related to the access to or use of the software.
 ## Usage
 
 ```bash
-myph --help
-In loving memory of Wassyl Iaroslavovytch Slipak (1974 - 2016)
-
 Usage:
   myph [flags]
 
@@ -25,9 +22,10 @@ Flags:
   -r, --arch string          architecture compilation target (default "amd64")
   -e, --encryption encKind   encryption method. (allowed: AES, RSA, XOR) (default AES)
   -h, --help                 help for myph
-  -k, --key string           encryption key, auto-generated if empty. (if used by --encryption-method)
+  -k, --key string           encryption key, auto-generated if empty. (if used by --encryption)
   -o, --os string            OS compilation target (default "windows")
   -f, --outdir string        output directory (default "myph-out")
+  -p, --process string       target process to inject shellcode to (default "cmd.exe")
   -s, --shellcode string     shellcode path (default "msf.raw")
   -v, --version              version for myph
 ```

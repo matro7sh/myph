@@ -1,0 +1,14 @@
+.git
+
+*.raw
+*.bin
+myph
+
+README.md
+
+Makefile
+Dockerfile
+
+.goreleaser.yml
+.dockerignore
+.gitignore

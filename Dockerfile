@@ -11,14 +11,16 @@ COPY go.mod .
 RUN go mod download
 
 COPY . .
-RUN go build -o myph main.go
+RUN go build -o myph .
 
 
 FROM alpine:3.18.2
 LABEL maintainer="djnn <email@djnn.sh>"
 
-WORKDIR /app
+RUN adduser -D djnn
+USER djnn
+WORKDIR /home/djnn
 
 COPY --from=builder /root/myph .
 
-ENTRYPOINT [ "/app/myph" ]
+ENTRYPOINT [ "/home/djnn/myph" ]

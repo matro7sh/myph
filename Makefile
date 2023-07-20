@@ -51,8 +51,8 @@ compile: ## compile the project
 
 .PHONY: clean
 clean: ## clean up the project directory
-	@rm -f $(APP_NAME)
+	@rm -vf $(APP_NAME)
 
 .PHONY: docker
 docker: ## build a local docker image
-	@docker build . -t $(APP_NAME):latest
+	@docker build . -t $(APP_NAME):latest -t $(APP_NAME):$(APP_VERSION)
