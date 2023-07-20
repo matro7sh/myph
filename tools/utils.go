@@ -57,7 +57,7 @@ func DirExists(dir string) (bool, error) {
 
 func CreateTmpProjectRoot(path string) error {
 
-    fmt.Printf("[+] Initializing temporary build directory\n")
+	fmt.Printf("[+] Initializing temporary build directory\n")
 
 	/*
 	   create a directory with the path name
@@ -70,7 +70,7 @@ func CreateTmpProjectRoot(path string) error {
 	}
 
 	if exists {
-        fmt.Printf("[!] %s already exists...Removing\n", path)
+		fmt.Printf("[!] %s already exists...Removing\n", path)
 		os.RemoveAll(path)
 	}
 
@@ -90,7 +90,6 @@ go 1.20
 	fo, err := os.Create(gomod_path)
 	fo.Write(go_mod)
 
-
 	maingo_path := fmt.Sprintf("%s/main.go", path)
 	_, _ = os.Create(maingo_path)
 
@@ -106,11 +105,11 @@ go 1.20
 
 func GetMainTemplate(encoding string, key string, sc string) string {
 
-    /* if hex encoding is used, it does not require to go through StdEncoding */
-    encCall := "enc.StdEncoding"
-    if encoding == "hex" {
-        encCall = "enc"
-    }
+	/* if hex encoding is used, it does not require to go through StdEncoding */
+	encCall := "enc.StdEncoding"
+	if encoding == "hex" {
+		encCall = "enc"
+	}
 
 	return fmt.Sprintf(`
 package main
