@@ -48,12 +48,8 @@ func GetParser(opts *Options) *cobra.Command {
 		Long:               ASCII_ART,
 		Run: func(cmd *cobra.Command, args []string) {
 
+            /* obligatory skid ascii art */
             fmt.Printf("%s\n\n", ASCII_ART)
-
-			if opts.ShellcodePath == "" {
-				fmt.Println("[!] Please specify your shellcode's path with --shellcode")
-				os.Exit(1)
-			}
 
 			/* later, we will call "go build" on a golang project, so we need to set up the project tree */
 			err := tools.CreateTmpProjectRoot(opts.Outdir)
@@ -65,7 +61,7 @@ func GetParser(opts *Options) *cobra.Command {
 			/* reading the shellcode as a series of bytes */
 			shellcode, err := tools.ReadFile(opts.ShellcodePath)
 			if err != nil {
-				fmt.Printf("[!] Error reading shellcode file: %s", err)
+				fmt.Printf("[!] Error reading shellcode file: %s", err.Error())
 				os.Exit(1)
 			}
 
@@ -127,6 +123,9 @@ func GetParser(opts *Options) *cobra.Command {
 
 			/* TODO: add support for more exec templates */
 			err = tools.WriteToFile(opts.Outdir, "exec.go", loaders.GetCRTTemplate(opts.Target))
+            if err != nil {
+				panic(err)
+			}
 
 			os.Setenv("GOOS", opts.OS)
 			os.Setenv("GOARCH", opts.arch)
@@ -140,6 +139,13 @@ func GetParser(opts *Options) *cobra.Command {
 
 			if stderr != nil {
                 fmt.Printf("[!] error compiling shellcode: %s\n", stderr.Error())
+                fmt.Printf(
+                    "\nYou may try to run the following command in %s to find out what happend: %s\n\n",
+                    opts.Outdir,
+                    "go build -ldflags \"-s -w -H=windowsgui\" -o payload.exe",
+                )
+
+                fmt.Println("If you want to submit a bug report, please add the output from this command...Thank you <3")
 				os.Exit(1)
 			}
 
