@@ -14,7 +14,7 @@ COPY . .
 RUN go build -o myph main.go
 
 
-FROM alpine:3.18.3
+FROM alpine:3.18.2
 LABEL maintainer="djnn <email@djnn.sh>"
 
 WORKDIR /app

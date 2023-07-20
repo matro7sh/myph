@@ -46,13 +46,13 @@ targets:
 
 .PHONY: compile
 compile: ## compile the project
-	@go build -o $(TARGET) .
+	@go build -o $(APP_NAME) .
 	@echo "[ *** build successful *** ]"
 
 .PHONY: clean
 clean: ## clean up the project directory
-	@rm -f $(TARGET)
+	@rm -f $(APP_NAME)
 
 .PHONY: docker
 docker: ## build a local docker image
-	@docker build . -t $(TARGET):latest
+	@docker build . -t $(APP_NAME):latest
