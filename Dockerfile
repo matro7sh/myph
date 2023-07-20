@@ -1,4 +1,4 @@
-FROM golang:1.19-alpine as builder
+FROM golang:1.20-alpine as builder
 
 WORKDIR /root
 RUN apk update --no-cache && \
@@ -13,7 +13,9 @@ RUN go mod download
 COPY . .
 RUN go build -o myph main.go
 
-FROM alpine:3.16.2
+
+FROM alpine:3.18.3
+LABEL maintainer="djnn <email@djnn.sh>"
 
 WORKDIR /app
 
