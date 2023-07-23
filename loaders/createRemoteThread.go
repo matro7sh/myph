@@ -9,7 +9,6 @@ func GetCRTTemplate(targetProcess string) string {
 package main
 
 import (
-        "os"
         "syscall"
         "unsafe"
 )
