@@ -42,10 +42,10 @@ Usage:
   myph [flags]
 
 Flags:
-  -e, --encryption encKind   encryption method. (allowed: AES, RSA, XOR) (default AES)
+  -e, --encryption encKind   encryption method. (allowed: AES, XOR) (default AES)
   -h, --help                 help for myph
   -k, --key string           encryption key, auto-generated if empty. (if used by --encryption)
-  -f, --out string           output name (default "myph-out")
+  -f, --out string           output name (default "payload.exe")
   -p, --process string       target process to inject shellcode to (default "cmd.exe")
   -s, --shellcode string     shellcode path (default "msf.raw")
   -t, --technique string     shellcode-loading technique (allowed: CRT, CreateThread) (default "CRT")
