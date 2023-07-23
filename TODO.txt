@@ -16,8 +16,3 @@ Templates:
     -> add ProcessHollowing template & syscall method
     -> add template for loading dlls & win32 api calls through PEB
     -> add to TODO plan for indirect syscalls
-
-
-Documentation:
-
-    -> add a guide on how to contribute ?

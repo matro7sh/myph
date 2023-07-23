@@ -49,12 +49,22 @@ Flags:
   -f, --out string           output name (default "myph-out")
   -p, --process string       target process to inject shellcode to (default "cmd.exe")
   -s, --shellcode string     shellcode path (default "msf.raw")
+  -t, --technique string     shellcode-loading technique (allowed: CRT, CreateThread) (default "CRT")
   -v, --version              version for myph
 ```
 
-This tool uses the CRT method. If you don't know what that is, go check out [this repository](https://github.com/CMEPW/BypassAV) :)~
+#### Methods
 
-> Altough there is an OS version, Linux or MacOS are not supported !
+This tool supports few methods for now, but aims to add more as time goes on:
+- CreateThread
+- CreateRemoteThread
+
+If you don't know what that is about, go check out [this repository](https://github.com/CMEPW/BypassAV) :)~
+
+> Altough there is an OS version, Linux or MacOS are not supported yet !
+
+
+#### Example
 
 Generate a payload like so:
 
@@ -78,3 +88,8 @@ make docker
 # going through dockerfile directly
 docker build . -t myph:latest
 ```
+
+### Contributing
+
+Contributions are welcome, but please try to keep PRs short and issues descriptive. :)~
+A guide on how to use the tool is in the works, please let us know if you're interested in helping out.

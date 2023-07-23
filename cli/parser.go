@@ -143,7 +143,7 @@ func GetParser(opts *Options) *cobra.Command {
 			if stderr != nil {
 				fmt.Printf("[!] error compiling shellcode: %s\n", stderr.Error())
 				fmt.Printf(
-					"\nYou may try to run the following command in %s to find out what happend: GOOS=%s GOARCH=%s %s\n\n",
+					"\nYou may try to run the following command in %s to find out what happend:\n\n GOOS=%s GOARCH=%s %s\n\n",
 					opts.OutName,
 					opts.OS,
 					opts.Arch,
