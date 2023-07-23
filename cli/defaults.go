@@ -8,12 +8,13 @@ import (
 func GetDefaultCLIOptions() Options {
 	opts := Options{
 		ShellcodePath: "msf.raw",
-		Outdir:        "myph-out",
+		OutName:        "myph-out",
 		OS:            "windows",
-		arch:          "amd64",
+		Arch:          "amd64",
 		Target:        "cmd.exe",
 		Encryption:    EncKindAES,
 		Key:           "",
+        Technique:     "CRT",
 	}
 
 	return opts

