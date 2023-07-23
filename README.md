@@ -31,7 +31,8 @@ go build -o myph .
 
 Finally, you can install from the [golang package repository](https://pkg.go.dev/github.com/CMEPW/myph) like so:
 ```bash
-go install github.com/CMEPW/myph@latest
+# /!\ lowercase is important /!\
+go install github.com/cmepw/myph@latest
 ```
 
 ### Usage

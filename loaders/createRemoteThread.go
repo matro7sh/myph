@@ -104,7 +104,7 @@ func ExecuteOrderSixtySix(shellcode []byte) {
         os.Exit(1)
     }
 
-    for {}
+    select {}
 }
     `, targetProcess)
 }

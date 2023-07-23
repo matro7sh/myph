@@ -2,14 +2,14 @@ package loaders
 
 func SelectTemplate(templateName string) func(string) string {
 
-    switch templateName {
-    case "CRT":
-        return GetCRTTemplate
+	switch templateName {
+	case "CRT":
+		return GetCRTTemplate
 
-    case "CreateThread":
-        return GetCreateThreadTemplate
+	case "CreateThread":
+		return GetCreateThreadTemplate
 
-    }
+	}
 
-    return nil
+	return nil
 }

