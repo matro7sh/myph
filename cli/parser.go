@@ -107,6 +107,20 @@ func GetParser(opts *Options) *cobra.Command {
 					panic(err)
 				}
 				template = tools.GetXORTemplate()
+
+			case EncKindBLF:
+				encrypted, err = tools.EncryptBlowfish(shellcode, []byte(opts.Key))
+				if err != nil {
+					fmt.Println("[!] Could not encrypt with Blowfish")
+					panic(err)
+				}
+
+				/* Running `go get golang.org/x/crypto/blowfish in MYPH_TMP_DIR` */
+				execCmd := exec.Command("go", "get", "golang.org/x/crypto/blowfish")
+				execCmd.Dir = MYPH_TMP_DIR
+
+				_, _ = execCmd.Output()
+				template = tools.GetBlowfishTemplate()
 			}
 
 			/* write decryption routine template */
@@ -171,7 +185,7 @@ func GetParser(opts *Options) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
 	cmd.PersistentFlags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, CreateThread)")
 
-	cmd.PersistentFlags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, XOR)")
+	cmd.PersistentFlags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, XOR, blowfish)")
 	cmd.PersistentFlags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")
 
 	return cmd

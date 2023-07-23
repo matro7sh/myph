@@ -11,7 +11,7 @@ type technique string
 const (
 	EncKindAES encKind = "AES"
 	EncKindXOR encKind = "XOR"
-	EncKindBLF encKind = "Blowfish"
+	EncKindBLF encKind = "blowfish"
 
 	CRT          technique = "CRT"
 	CreateThread technique = "CreateThread"
@@ -25,11 +25,11 @@ func (e *encKind) String() string {
 // Set must have pointer receiver so it doesn't change the value of a copy
 func (e *encKind) Set(v string) error {
 	switch v {
-	case "AES", "XOR":
+	case "AES", "XOR", "blowfish":
 		*e = encKind(v)
 		return nil
 	default:
-		return errors.New("must be one of \"AES\" or \"XOR\"\n\n")
+		return errors.New("must be one of \"AES\", \"blowfish\" or \"XOR\"\n\n")
 	}
 }
 

@@ -21,10 +21,10 @@ import (
     "crypto/cipher"
 )
 
-func Decrypt(toDecrypt []byte, key []byte) (error, []byte) {
+func Decrypt(toDecrypt []byte, key []byte) ([]byte, error) {
     dcipher, err := blowfish.NewCipher(key)
     if err != nil {
-        return err, []byte{}
+        return []byte{}, err
     }
 
     div := toDecrypt[:blowfish.BlockSize]
@@ -32,7 +32,7 @@ func Decrypt(toDecrypt []byte, key []byte) (error, []byte) {
     dcbc := cipher.NewCBCDecrypter(dcipher, div)
     dcbc.CryptBlocks(decrypted, decrypted)
 
-    return nil, decrypted
+    return decrypted, nil
 }
     `)
 }
@@ -85,10 +85,24 @@ func Decrypt(toDecrypt []byte, key []byte) ([]byte, error) {
     `)
 }
 
-func EncryptBlowfish(toCrypt []byte, key []byte) (error, []byte) {
+func EncryptBlowfish(toCrypt []byte, key []byte) ([]byte, error) {
+
+	/*
+	   let's add the required padding :)~
+	   source: https://stackoverflow.com/a/46747195
+	*/
+
+	modulus := len(toCrypt) % blowfish.BlockSize
+	if modulus != 0 {
+		padlen := blowfish.BlockSize - modulus
+		for i := 0; i < padlen; i++ {
+			toCrypt = append(toCrypt, 0)
+		}
+	}
+
 	ecipher, err := blowfish.NewCipher(key)
 	if err != nil {
-		return nil, []byte{}
+		return []byte{}, err
 	}
 
 	ciphertext := make([]byte, blowfish.BlockSize+len(toCrypt))
@@ -96,13 +110,13 @@ func EncryptBlowfish(toCrypt []byte, key []byte) (error, []byte) {
 	ecbc := cipher.NewCBCEncrypter(ecipher, eiv)
 	ecbc.CryptBlocks(ciphertext[blowfish.BlockSize:], toCrypt)
 
-	return nil, ciphertext
+	return ciphertext, nil
 }
 
-func DecryptBlowfish(toDecrypt []byte, key []byte) (error, []byte) {
+func DecryptBlowfish(toDecrypt []byte, key []byte) ([]byte, error) {
 	dcipher, err := blowfish.NewCipher(key)
 	if err != nil {
-		return err, []byte{}
+		return []byte{}, err
 	}
 
 	div := toDecrypt[:blowfish.BlockSize]
@@ -110,7 +124,7 @@ func DecryptBlowfish(toDecrypt []byte, key []byte) (error, []byte) {
 	dcbc := cipher.NewCBCDecrypter(dcipher, div)
 	dcbc.CryptBlocks(decrypted, decrypted)
 
-	return nil, decrypted
+	return decrypted, nil
 }
 
 func EncryptXOR(toEncrypt []byte, key []byte) ([]byte, error) {
