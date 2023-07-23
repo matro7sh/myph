@@ -14,12 +14,12 @@ const MYPH_TMP_DIR = "/tmp/myph-out"
 const MYPH_TMP_WITH_PAYLOAD = "/tmp/myph-out/payload.exe"
 
 const ASCII_ART = `
-              ...                                    -==[ M Y P H ]==-
+              ...                                        -==[ M Y P H ]==-
              ;::::;
-           ;::::; :;                                In loving memory of
-         ;:::::'   :;                           Wassyl Iaroslavovytch Slipak
+           ;::::; :;                                    In loving memory of
+         ;:::::'   :;                               Wassyl Iaroslavovytch Slipak
         ;:::::;     ;.
-       ,:::::'       ;           OOO                   (1974 - 2016)
+       ,:::::'       ;           OOO                       (1974 - 2016)
        ::::::;       ;          OOOOO
        ;:::::;       ;         OOOOOOOO
       ,;::::::;     ;'         / OOOOOOO
@@ -171,7 +171,7 @@ func GetParser(opts *Options) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
 	cmd.PersistentFlags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, CreateThread)")
 
-	cmd.PersistentFlags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, RSA, XOR)")
+	cmd.PersistentFlags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, XOR)")
 	cmd.PersistentFlags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")
 
 	return cmd

