@@ -29,7 +29,7 @@ func (e *encKind) Set(v string) error {
 		*e = encKind(v)
 		return nil
 	default:
-		return errors.New(`must be one of "AES" or "XOR"`)
+		return errors.New("must be one of \"AES\" or \"XOR\"\n\n")
 	}
 }
 
@@ -50,7 +50,7 @@ func (e *technique) Set(v string) error {
 		*e = technique(v)
 		return nil
 	default:
-		return errors.New(`must be one of "CRT" or "CreateThread"`)
+		return errors.New("must be one of \"CRT\" or \"CreateThread\"\n\n")
 	}
 }
 

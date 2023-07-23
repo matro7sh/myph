@@ -10,6 +10,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const MYPH_TMP_DIR = "/tmp/myph-out"
+const MYPH_TMP_WITH_PAYLOAD = "/tmp/myph-out/payload.exe"
+
 const ASCII_ART = `
               ...                                    -==[ M Y P H ]==-
              ;::::;
@@ -51,7 +54,7 @@ func GetParser(opts *Options) *cobra.Command {
 			fmt.Printf("%s\n\n", ASCII_ART)
 
 			/* later, we will call "go build" on a golang project, so we need to set up the project tree */
-			err := tools.CreateTmpProjectRoot(opts.OutName)
+			err := tools.CreateTmpProjectRoot(MYPH_TMP_DIR)
 			if err != nil {
 				fmt.Printf("[!] Error generating project root: %s\n", err)
 				os.Exit(1)
@@ -107,7 +110,7 @@ func GetParser(opts *Options) *cobra.Command {
 			}
 
 			/* write decryption routine template */
-			err = tools.WriteToFile(opts.OutName, "encrypt.go", template)
+			err = tools.WriteToFile(MYPH_TMP_DIR, "encrypt.go", template)
 			if err != nil {
 				panic(err)
 			}
@@ -115,7 +118,7 @@ func GetParser(opts *Options) *cobra.Command {
 			/* write main execution template */
 			encodedShellcode := tools.EncodeForInterpolation(encType, encrypted)
 			encodedKey := tools.EncodeForInterpolation(encType, []byte(opts.Key))
-			err = tools.WriteToFile(opts.OutName, "main.go", tools.GetMainTemplate(encType.String(), encodedKey, encodedShellcode))
+			err = tools.WriteToFile(MYPH_TMP_DIR, "main.go", tools.GetMainTemplate(encType.String(), encodedKey, encodedShellcode))
 			if err != nil {
 				panic(err)
 			}
@@ -129,14 +132,14 @@ func GetParser(opts *Options) *cobra.Command {
 				os.Exit(1)
 			}
 
-			err = tools.WriteToFile(opts.OutName, "exec.go", templateFunc(opts.Target))
+			err = tools.WriteToFile(MYPH_TMP_DIR, "exec.go", templateFunc(opts.Target))
 			if err != nil {
 				panic(err)
 			}
 
 			fmt.Printf("\n[+] Template (%s) written to tmp directory. Compiling...\n", opts.Technique)
 			execCmd := exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", ".")
-			execCmd.Dir = opts.OutName
+			execCmd.Dir = MYPH_TMP_DIR
 
 			_, stderr := execCmd.Output()
 
@@ -144,7 +147,7 @@ func GetParser(opts *Options) *cobra.Command {
 				fmt.Printf("[!] error compiling shellcode: %s\n", stderr.Error())
 				fmt.Printf(
 					"\nYou may try to run the following command in %s to find out what happend:\n\n GOOS=%s GOARCH=%s %s\n\n",
-					opts.OutName,
+					MYPH_TMP_DIR,
 					opts.OS,
 					opts.Arch,
 					"go build -ldflags \"-s -w -H=windowsgui\" -o payload.exe",
@@ -154,12 +157,8 @@ func GetParser(opts *Options) *cobra.Command {
 				os.Exit(1)
 			}
 
-			/* FIXME(djnn): if path is a distant directory, this is will not work */
-			fullpath := fmt.Sprintf("%s/payload.exe", opts.OutName)
-			finalName := fmt.Sprintf("./%s.exe", opts.OutName)
-			tools.MoveFile(fullpath, finalName)
-
-			os.RemoveAll(opts.OutName)
+			tools.MoveFile(MYPH_TMP_WITH_PAYLOAD, opts.OutName)
+			os.RemoveAll(MYPH_TMP_DIR)
 
 			println("[+] Done!")
 		},
@@ -171,9 +170,6 @@ func GetParser(opts *Options) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
 	cmd.PersistentFlags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
 	cmd.PersistentFlags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, CreateThread)")
-
-	cmd.PersistentFlags().StringVarP(&opts.Arch, "arch", "r", defaults.Arch, "architecture compilation target")
-	cmd.PersistentFlags().StringVarP(&opts.OS, "os", "o", defaults.OS, "OS compilation target")
 
 	cmd.PersistentFlags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, RSA, XOR)")
 	cmd.PersistentFlags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")
