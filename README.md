@@ -48,7 +48,7 @@ Flags:
   -f, --out string           output name (default "payload.exe")
   -p, --process string       target process to inject shellcode to (default "cmd.exe")
   -s, --shellcode string     shellcode path (default "msf.raw")
-  -l, --sleep-time uint      sleep time before executing loader (default: 0)
+      --sleep-time uint      sleep time before executing loader (default: 0)
   -t, --technique string     shellcode-loading technique (allowed: CRT, CreateThread) (default "CRT")
   -v, --version              version for myph
 ```

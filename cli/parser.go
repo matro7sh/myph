@@ -197,7 +197,7 @@ func GetParser(opts *Options) *cobra.Command {
 	cmd.PersistentFlags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, XOR, blowfish)")
 	cmd.PersistentFlags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")
 
-    cmd.PersistentFlags().UintVarP(&opts.SleepTime, "sleep-time", "l", defaults.SleepTime, "sleep time before executing loader (default: 0)")
+    cmd.PersistentFlags().UintVarP(&opts.SleepTime, "sleep-time", "", defaults.SleepTime, "sleep time in seconds before executing loader (default: 0)")
 
 	return cmd
 }
