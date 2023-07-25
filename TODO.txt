@@ -2,9 +2,6 @@
 ####### ROADMAP 2.0.0 #######
 #############################
 
-Encryption:
-    -> add support for chacha20
-
 Templates:
     - ProcessHollowing
     - syscall method

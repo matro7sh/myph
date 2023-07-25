@@ -9,7 +9,35 @@ import (
 	"io"
 
 	"golang.org/x/crypto/blowfish"
+	"golang.org/x/crypto/chacha20poly1305"
 )
+
+func GetChacha20Template() string {
+	return fmt.Sprintf(`
+package main
+
+import (
+    "golang.org/x/crypto/chacha20poly1305"
+
+    "errors"
+)
+
+func Decrypt(toDecrypt []byte, key []byte) ([]byte, error) {
+    enc, err := chacha20poly1305.NewX(key)
+    if err != nil {
+        return []byte{}, err
+    }
+
+    nonceSize := enc.NonceSize()
+	if len(toDecrypt) < nonceSize {
+		return nil, errors.New("Ciphertext too short")
+	}
+
+	nonce, ciphertext := toDecrypt[:nonceSize], toDecrypt[nonceSize:]
+    return enc.Open(nil, nonce, ciphertext, nil)
+}
+    `)
+}
 
 func GetBlowfishTemplate() string {
 	return fmt.Sprintf(`
@@ -83,6 +111,37 @@ func Decrypt(toDecrypt []byte, key []byte) ([]byte, error) {
     return encrypted, nil
 }
     `)
+}
+
+func DecryptChacha20(toDecrypt []byte, key []byte) ([]byte, error) {
+	enc, err := chacha20poly1305.NewX(key)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	nonceSize := enc.NonceSize()
+	if len(toDecrypt) < nonceSize {
+		return nil, errors.New("Ciphertext too short")
+	}
+
+	nonce, ciphertext := toDecrypt[:nonceSize], toDecrypt[nonceSize:]
+	return enc.Open(nil, nonce, ciphertext, nil)
+}
+
+func EncryptChacha20(toCrypt []byte, key []byte) ([]byte, error) {
+
+	enc, err := chacha20poly1305.NewX(key)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	nonce := make([]byte, enc.NonceSize())
+	_, err = io.ReadFull(rand.Reader, nonce)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return enc.Seal(nonce, nonce, toCrypt, nil), nil
 }
 
 func EncryptBlowfish(toCrypt []byte, key []byte) ([]byte, error) {

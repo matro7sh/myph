@@ -108,6 +108,23 @@ func GetParser(opts *Options) *cobra.Command {
 				}
 				template = tools.GetXORTemplate()
 
+			case EncKindC20:
+				encrypted, err = tools.EncryptChacha20(shellcode, []byte(opts.Key))
+				if err != nil {
+					fmt.Println("[!] Could not encrypt with ChaCha20")
+					panic(err)
+				}
+
+				fmt.Println("\n...downloading necessary library...")
+				fmt.Println("if it fails because of your internet connection, please consider using XOR or AES instead")
+
+				/* Running `go get "golang.org/x/crypto/chacha20poly1305"` in MYPH_TMP_DIR` */
+				execCmd := exec.Command("go", "get", "golang.org/x/crypto/chacha20poly1305")
+				execCmd.Dir = MYPH_TMP_DIR
+
+				_, _ = execCmd.Output()
+				template = tools.GetChacha20Template()
+
 			case EncKindBLF:
 				encrypted, err = tools.EncryptBlowfish(shellcode, []byte(opts.Key))
 				if err != nil {
@@ -197,7 +214,7 @@ func GetParser(opts *Options) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
 	cmd.PersistentFlags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, CreateThread)")
 
-	cmd.PersistentFlags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, XOR, blowfish)")
+	cmd.PersistentFlags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, chacha20, XOR, blowfish)")
 	cmd.PersistentFlags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")
 
 	cmd.PersistentFlags().UintVarP(&opts.SleepTime, "sleep-time", "", defaults.SleepTime, "sleep time in seconds before executing loader (default: 0)")
