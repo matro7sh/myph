@@ -4,7 +4,6 @@
 
 Encryption:
     -> add support for chacha20
-    -> re-introduce support for blowfish
 
 Templates:
     - ProcessHollowing

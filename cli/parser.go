@@ -115,6 +115,9 @@ func GetParser(opts *Options) *cobra.Command {
 					panic(err)
 				}
 
+				fmt.Println("\n...downloading necessary library...")
+				fmt.Println("if it fails because of your internet connection, please consider using XOR or AES instead")
+
 				/* Running `go get golang.org/x/crypto/blowfish in MYPH_TMP_DIR` */
 				execCmd := exec.Command("go", "get", "golang.org/x/crypto/blowfish")
 				execCmd.Dir = MYPH_TMP_DIR
@@ -133,15 +136,15 @@ func GetParser(opts *Options) *cobra.Command {
 			encodedShellcode := tools.EncodeForInterpolation(encType, encrypted)
 			encodedKey := tools.EncodeForInterpolation(encType, []byte(opts.Key))
 			err = tools.WriteToFile(
-                MYPH_TMP_DIR,
-                "main.go",
-                tools.GetMainTemplate(
-                    encType.String(),
-                    encodedKey,
-                    encodedShellcode,
-                    opts.SleepTime,
-                ),
-            )
+				MYPH_TMP_DIR,
+				"main.go",
+				tools.GetMainTemplate(
+					encType.String(),
+					encodedKey,
+					encodedShellcode,
+					opts.SleepTime,
+				),
+			)
 			if err != nil {
 				panic(err)
 			}
@@ -197,7 +200,7 @@ func GetParser(opts *Options) *cobra.Command {
 	cmd.PersistentFlags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, XOR, blowfish)")
 	cmd.PersistentFlags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")
 
-    cmd.PersistentFlags().UintVarP(&opts.SleepTime, "sleep-time", "", defaults.SleepTime, "sleep time in seconds before executing loader (default: 0)")
+	cmd.PersistentFlags().UintVarP(&opts.SleepTime, "sleep-time", "", defaults.SleepTime, "sleep time in seconds before executing loader (default: 0)")
 
 	return cmd
 }

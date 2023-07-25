@@ -14,7 +14,8 @@ or related to the access to or use of the software.
 
 ## How to use the software ?
 
-> Please note this project is under development & subject to changes. Breaking changes can be introduced from release to release.
+> Please note this project is under development & subject to changes.
+> Breaking changes can be introduced from release to release.
 
 ### Compiling or Installing the project
 
@@ -90,4 +91,5 @@ docker build . -t myph:latest
 ### Contributing
 
 Contributions are welcome, but please try to keep PRs short and issues descriptive. :)~
+
 A guide on how to use the tool is in the works, please let us know if you're interested in helping out.

