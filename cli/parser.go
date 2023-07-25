@@ -132,7 +132,16 @@ func GetParser(opts *Options) *cobra.Command {
 			/* write main execution template */
 			encodedShellcode := tools.EncodeForInterpolation(encType, encrypted)
 			encodedKey := tools.EncodeForInterpolation(encType, []byte(opts.Key))
-			err = tools.WriteToFile(MYPH_TMP_DIR, "main.go", tools.GetMainTemplate(encType.String(), encodedKey, encodedShellcode))
+			err = tools.WriteToFile(
+                MYPH_TMP_DIR,
+                "main.go",
+                tools.GetMainTemplate(
+                    encType.String(),
+                    encodedKey,
+                    encodedShellcode,
+                    opts.SleepTime,
+                ),
+            )
 			if err != nil {
 				panic(err)
 			}
@@ -187,6 +196,8 @@ func GetParser(opts *Options) *cobra.Command {
 
 	cmd.PersistentFlags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, XOR, blowfish)")
 	cmd.PersistentFlags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")
+
+    cmd.PersistentFlags().UintVarP(&opts.SleepTime, "sleep-time", "l", defaults.SleepTime, "sleep time before executing loader (default: 0)")
 
 	return cmd
 }

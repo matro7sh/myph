@@ -15,6 +15,7 @@ func GetDefaultCLIOptions() Options {
 		Encryption:    EncKindAES,
 		Key:           "",
 		Technique:     "CRT",
+        SleepTime:     0,
 	}
 
 	return opts

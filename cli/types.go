@@ -84,4 +84,7 @@ type Options struct {
 
 	// Shellcode loading method
 	Technique string
+
+    // Sleep time before running execution
+    SleepTime uint
 }

