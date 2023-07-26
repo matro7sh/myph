@@ -26,7 +26,6 @@ const (
 
 var (
     kernel32            = syscall.MustLoadDLL("kernel32.dll")
-    ntdll               = syscall.MustLoadDLL("ntdll.dll")
 
     VirtualAllocEx      = kernel32.MustFindProc("VirtualAllocEx")
     VirtualProtectEx    = kernel32.MustFindProc("VirtualProtectEx")

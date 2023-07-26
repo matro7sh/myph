@@ -14,8 +14,9 @@ const (
 	EncKindBLF encKind = "blowfish"
 	EncKindC20 encKind = "chacha20"
 
-	CRT          technique = "CRT"
-	CreateThread technique = "CreateThread"
+	CRT              technique = "CRT"
+	CreateThread     technique = "CreateThread"
+	ProcessHollowing technique = "ProcessHollowing"
 )
 
 // String is used both by fmt.Print and by Cobra in help text
@@ -47,11 +48,11 @@ func (e *technique) String() string {
 // Set must have pointer receiver so it doesn't change the value of a copy
 func (e *technique) Set(v string) error {
 	switch v {
-	case "CreateThread", "CRT":
+	case "CreateThread", "CRT", "ProcessHollowing":
 		*e = technique(v)
 		return nil
 	default:
-		return errors.New("must be one of \"CRT\" or \"CreateThread\"\n\n")
+		return errors.New("must be one of \"CRT\", \"ProcessHollowing\" or \"CreateThread\"\n\n")
 	}
 }
 

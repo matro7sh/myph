@@ -9,6 +9,9 @@ func SelectTemplate(templateName string) func(string) string {
 	case "CreateThread":
 		return GetCreateThreadTemplate
 
+	case "ProcessHollowing":
+		return GetProcessHollowingTemplate
+
 	}
 
 	return nil
