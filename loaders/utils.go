@@ -12,8 +12,8 @@ func SelectTemplate(templateName string) func(string) string {
 	case "ProcessHollowing":
 		return GetProcessHollowingTemplate
 
-    case "Syscall":
-        return GetSyscallTemplate
+	case "Syscall":
+		return GetSyscallTemplate
 
 	}
 

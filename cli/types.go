@@ -15,7 +15,7 @@ const (
 	EncKindC20 encKind = "chacha20"
 
 	CRT              technique = "CRT"
-    SYSCALL          technique = "Syscall"
+	SYSCALL          technique = "Syscall"
 	CreateThread     technique = "CreateThread"
 	ProcessHollowing technique = "ProcessHollowing"
 )

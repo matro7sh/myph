@@ -1,13 +1,15 @@
 package loaders
 
 import (
-    "fmt"
+	"fmt"
 )
 
 func GetSyscallTemplate(targetProcess string) string {
-    _ = targetProcess // unused in this technique
+	_ = targetProcess // unused in this technique
 
-    return fmt.Sprintf(`
+	println("[!] Please note that shellcode will not be injected into new process with this method")
+
+	return fmt.Sprintf(`
 package main
 
 import (

