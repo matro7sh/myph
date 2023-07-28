@@ -4,11 +4,6 @@
 
 Templates:
     - ProcessHollowing
-    - syscall method
-
-Misc:
-    - support for loading modules from PEB
-    - Research indirect syscalls
 
 
 #############################
@@ -24,6 +19,20 @@ Sleep / jitter:
     - Ekko
 
 Misc:
-    - indirect syscalls
+    - support for loading modules from PEB
+    - Research indirect syscalls
     - Refactoring CLI options to interfaces
-    - support for dameonizing
+
+Commands:
+    - Add support for GoVersionInfo
+    - Add support for signing binary
+
+
+#############################
+####### ROADMAP 2.2.0 #######
+#############################
+
+Misc:
+    - indirect syscalls
+    - support for dameonizing ?
+    - introduce ppid spoofing ?

