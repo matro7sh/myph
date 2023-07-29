@@ -43,14 +43,14 @@ Usage:
   myph [flags]
 
 Flags:
-  -e, --encryption encKind   encryption method. (allowed: AES, XOR, blowfish) (default AES)
+  -e, --encryption encKind   encryption method. (allowed: AES, chacha20, XOR, blowfish) (default AES)
   -h, --help                 help for myph
   -k, --key string           encryption key, auto-generated if empty. (if used by --encryption)
   -f, --out string           output name (default "payload.exe")
   -p, --process string       target process to inject shellcode to (default "cmd.exe")
   -s, --shellcode string     shellcode path (default "msf.raw")
-      --sleep-time uint      sleep time before executing loader (default: 0)
-  -t, --technique string     shellcode-loading technique (allowed: CRT, CreateThread) (default "CRT")
+      --sleep-time uint      sleep time in seconds before executing loader (default: 0)
+  -t, --technique string     shellcode-loading technique (allowed: CRT, ProcessHollowing, CreateThread, Syscall) (default "CRT")
   -v, --version              version for myph
 ```
 
@@ -59,6 +59,8 @@ Flags:
 This tool supports few methods for now, but aims to add more as time goes on:
 - CreateThread
 - CreateRemoteThread
+- Syscall
+- Process hollowing
 
 If you don't know what that is about, go check out [this repository](https://github.com/CMEPW/BypassAV) :)~
 
