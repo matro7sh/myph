@@ -123,7 +123,7 @@ go 1.20
 	encryptgo_path := fmt.Sprintf("%s/encrypt.go", path)
 	_, _ = os.Create(encryptgo_path)
 
-	fmt.Printf("\tDone !\n\n")
+	println("\n")
 	return nil
 }
 
