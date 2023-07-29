@@ -41,7 +41,7 @@ const ASCII_ART = `
 
 func GetParser(opts *Options) *cobra.Command {
 
-	version := "2.0.0"
+	version := "1.1.0"
 	var cmd = &cobra.Command{
 		Use:                "myph",
 		Version:            version,
