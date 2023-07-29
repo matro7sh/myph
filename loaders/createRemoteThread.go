@@ -9,8 +9,8 @@ func GetCRTTemplate(targetProcess string) string {
 package main
 
 import (
-        "syscall"
-        "unsafe"
+    "syscall"
+    "unsafe"
 )
 
 
@@ -39,7 +39,6 @@ func loadProcess(target string) *syscall.ProcessInformation {
 	var pi syscall.ProcessInformation
 
 	commandLine, err := syscall.UTF16PtrFromString(target)
-
 	if err != nil {
 		panic(err)
 	}
@@ -54,9 +53,8 @@ func loadProcess(target string) *syscall.ProcessInformation {
 		nil,
 		nil,
 		&si,
-		&pi)
-
-	if err != nil {
+		&pi,
+    ); if err != nil {
 		panic(err)
 	}
 

@@ -63,7 +63,6 @@ func ExecuteOrderSixtySix(shellcode []byte) {
     */
     for {
         time.Sleep(100 * time.Second)
-
     }
 }
     `)
