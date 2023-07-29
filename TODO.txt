@@ -1,0 +1,33 @@
+#############################
+####### ROADMAP 2.1.0 #######
+#############################
+
+Templates:
+    - CreateRemoteThreadEx
+    - CreateFiber
+    - EtwpCreateEtwThread
+
+Misc:
+    - support for loading modules from PEB
+    - Research indirect syscalls
+    - Refactoring CLI options to interfaces
+    - Decrypt shellcode at the last possible time & split templates into trigger & prepare-payload functions
+
+Commands:
+    - Add support for GoVersionInfo
+
+
+#############################
+####### ROADMAP 2.2.0 #######
+#############################
+
+Commands:
+    - Add support for signing binary
+
+Sleep / jitter:
+    - Ekko
+
+Misc:
+    - indirect syscalls
+    - support for dameonizing ?
+    - introduce ppid spoofing ?

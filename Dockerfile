@@ -1,4 +1,4 @@
-FROM golang:1.19-alpine as builder
+FROM golang:1.20-alpine as builder
 
 WORKDIR /root
 RUN apk update --no-cache && \
@@ -11,12 +11,16 @@ COPY go.mod .
 RUN go mod download
 
 COPY . .
-RUN go build -o myph main.go
+RUN go build -o myph .
 
-FROM alpine:3.16.2
 
-WORKDIR /app
+FROM alpine:3.18.2
+LABEL maintainer="djnn <email@djnn.sh>"
+
+RUN adduser -D djnn
+USER djnn
+WORKDIR /home/djnn
 
 COPY --from=builder /root/myph .
 
-ENTRYPOINT [ "/app/myph" ]
+ENTRYPOINT [ "/home/djnn/myph" ]
