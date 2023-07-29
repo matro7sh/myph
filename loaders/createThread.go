@@ -7,12 +7,14 @@ import (
 func GetCreateThreadTemplate(targetProcess string) string {
 	var _ = targetProcess // unused in this template
 
+	println("\n\n[!] PLEASE NOTE: shellcode will not be injected into new process with this method")
 	return fmt.Sprintf(`
 package main
 
 import (
 	"syscall"
 	"unsafe"
+    "time"
 )
 
 const (
@@ -53,7 +55,16 @@ func ExecuteOrderSixtySix(shellcode []byte) {
 		0,
 	)
 
-	select {}
+    /*
+        FIXME(djnn): it seems that we cant use select instead at
+        the risk of a deadlock, which kind of sucks
+
+        instead, let's just wait manually like this xD (which also sucks)
+    */
+    for {
+        time.Sleep(100 * time.Second)
+
+    }
 }
     `)
 }
