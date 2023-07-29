@@ -106,7 +106,7 @@ func CreateTmpProjectRoot(path string) error {
 	var go_mod = []byte(`
 module github.com/cmepw/myph
 
-go 1.20
+go 1.19
 
     `)
 
