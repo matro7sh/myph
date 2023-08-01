@@ -38,7 +38,7 @@ go install github.com/cmepw/myph@latest
 
 ### Usage
 
-```bash
+```
 Usage:
   myph [flags]
 
