@@ -54,7 +54,7 @@ Flags:
   -v, --version              version for myph
 ```
 
-#### Methods
+#### Loader Methods
 
 This tool supports few methods for now, but aims to add more as time goes on:
 - CreateThread
@@ -88,6 +88,72 @@ make docker
 
 # going through dockerfile directly
 docker build . -t myph:latest
+```
+
+#### Editing file properties
+
+A subcommand is available to edit a PE file's properties & change its icon or file version (for instance).
+For more information on CLI usage, you can run:
+```bash
+# will give you a little help display
+./myph spoof --help
+
+# will edit demo.exe with the data specified in example.json
+./myph spoof --pe demo.exe --file example.json
+```
+
+It expects a JSON file, containing the metadata you want to set. You can find an example in `.github/test-data` directory.
+
+Information on resource types and language IDs can be found [here](https://learn.microsoft.com/en-us/windows/win32/menurc/resource-types) and [here](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-lcid/70feba9f-294e-491e-b6eb-56532684c37f).
+
+You can set data depending on the language.
+BMP, ICO, and PNG files are supported, and you can a wide array of information:
+
+```json
+{
+  "RT_VERSION": {
+    "#1": {
+      "0000": {
+        "fixed": {
+          "file_version": "1.2",
+          "product_version": "1.2.3",
+          "flags": "Debug,Patched",
+          "timestamp": "2020-12-18T23:00:00+01:00"
+        },
+        "info": {
+          "0409": {
+            "Comments": "that should do it",
+            "CompanyName": "Smersh",
+            "FileDescription": "smrsh 4 evr",
+            "FileVersion": "1.2",
+            "InternalName": "",
+            "LegalCopyright": "GNU GPL v3",
+            "LegalTrademarks": "",
+            "OriginalFilename": "myph.exe",
+            "PrivateBuild": "",
+            "ProductName": "myph ldr",
+            "ProductVersion": "1.2 release",
+            "SpecialBuild": ""
+          },
+          "040C": {
+            "Comments": "ca devrait le faire",
+            "CompanyName": "Smersh",
+            "FileDescription": "smrh pr tjrs",
+            "FileVersion": "1.2",
+            "InternalName": "",
+            "LegalCopyright": "GNU GPL v3",
+            "LegalTrademarks": "",
+            "OriginalFilename": "myph.exe",
+            "PrivateBuild": "",
+            "ProductName": "myph ldr",
+            "ProductVersion": "1.2 release",
+            "SpecialBuild": ""
+          }
+        }
+      }
+    }
+  }
+}
 ```
 
 ### Contributing

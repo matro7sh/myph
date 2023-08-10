@@ -125,10 +125,10 @@ func stringToIdentifier(s string) winres.Identifier {
 func LoadResourcesFromJson(rs *winres.ResourceSet, jsonName string) error {
 	dir := filepath.Dir(jsonName)
 	b, err := os.ReadFile(jsonName)
+
 	if err != nil {
 		return err
 	}
-
 	res := jsonDef{}
 	err = json.Unmarshal(b, &res)
 	if err != nil {

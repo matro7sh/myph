@@ -46,7 +46,7 @@ func GetParser(opts *Options) *cobra.Command {
 
 	version := "1.2.0"
 	var spoofMetadata = &cobra.Command{
-		Use:                "spoofMetadata",
+		Use:                "spoof",
 		Version:            version,
 		DisableSuggestions: true,
 		Short:              "spoof PE metadata using versioninfo",
@@ -64,7 +64,7 @@ func GetParser(opts *Options) *cobra.Command {
 
 			rs, err := winres.LoadFromEXE(exe)
 			if err != nil {
-				panic(err)
+				rs = &winres.ResourceSet{}
 			}
 
 			err = rc.LoadResourcesFromJson(rs, opts.VersionFilePath)
