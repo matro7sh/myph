@@ -90,4 +90,10 @@ type Options struct {
 
 	// Sleep time before running execution
 	SleepTime uint
+
+	// Goversion filepath
+	VersionFilePath string
+
+	// PE filepath
+	PEFilePath string
 }

@@ -41,8 +41,21 @@ const ASCII_ART = `
 
 func GetParser(opts *Options) *cobra.Command {
 
-	version := "1.1.0"
-	var cmd = &cobra.Command{
+	version := "1.2.0"
+	var spoofMetadata = &cobra.Command{
+		Use:                "spoofMetadata",
+		Version:            version,
+		DisableSuggestions: true,
+		Short:              "spoof PE metadata using versioninfo",
+		Long:               ASCII_ART,
+		Run: func(cmd *cobra.Command, args []string) {
+
+			println("[!] This feature is not implemented yet!")
+			os.Exit(0)
+		},
+	}
+
+	var runLoader = &cobra.Command{
 		Use:                "myph",
 		Version:            version,
 		DisableSuggestions: true,
@@ -208,16 +221,20 @@ func GetParser(opts *Options) *cobra.Command {
 	}
 
 	defaults := GetDefaultCLIOptions()
+	var rootCmd = runLoader
 
-	cmd.PersistentFlags().StringVarP(&opts.OutName, "out", "f", defaults.OutName, "output name")
-	cmd.PersistentFlags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
-	cmd.PersistentFlags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
-	cmd.PersistentFlags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, ProcessHollowing, CreateThread, Syscall)")
+	rootCmd.AddCommand(spoofMetadata)
 
-	cmd.PersistentFlags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, chacha20, XOR, blowfish)")
-	cmd.PersistentFlags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")
+	rootCmd.Flags().StringVarP(&opts.OutName, "out", "f", defaults.OutName, "output name")
+	rootCmd.Flags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
+	rootCmd.Flags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
+	rootCmd.Flags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, ProcessHollowing, CreateThread, Syscall)")
+	rootCmd.Flags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, chacha20, XOR, blowfish)")
+	rootCmd.Flags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")
+	rootCmd.Flags().UintVarP(&opts.SleepTime, "sleep-time", "", defaults.SleepTime, "sleep time in seconds before executing loader (default: 0)")
 
-	cmd.PersistentFlags().UintVarP(&opts.SleepTime, "sleep-time", "", defaults.SleepTime, "sleep time in seconds before executing loader (default: 0)")
+	spoofMetadata.Flags().StringVarP(&opts.PEFilePath, "pe", "p", defaults.PEFilePath, "PE file to spoof")
+	spoofMetadata.Flags().StringVarP(&opts.VersionFilePath, "file", "f", defaults.VersionFilePath, "versioninfo JSON file path")
 
-	return cmd
+	return rootCmd
 }
