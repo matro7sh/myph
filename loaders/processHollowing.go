@@ -13,10 +13,6 @@ import (
 */
 
 func GetProcessHollowingTemplate(targetProcess string) string {
-
-	println("\n[!] Please be aware ProcessHollowing implementation is still a work in progress and unstable.")
-	println("Maybe you could use another technique instead...? I hear the CRT one is pretty good...\n")
-
 	return fmt.Sprintf(`
 package main
 
