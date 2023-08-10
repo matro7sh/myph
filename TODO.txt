@@ -13,9 +13,6 @@ Misc:
     - Refactoring CLI options to interfaces
     - Decrypt shellcode at the last possible time & split templates into trigger & prepare-payload functions
 
-Commands:
-    - Add support for GoVersionInfo
-
 
 #############################
 ####### ROADMAP 1.3.0 #######
