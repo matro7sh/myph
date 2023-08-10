@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/cmepw/myph/loaders"
+	"github.com/cmepw/myph/rc"
 	"github.com/cmepw/myph/tools"
 	"github.com/spf13/cobra"
+	"github.com/tc-hib/winres"
 )
 
 const MYPH_TMP_DIR = "/tmp/myph-out"
@@ -50,8 +53,48 @@ func GetParser(opts *Options) *cobra.Command {
 		Long:               ASCII_ART,
 		Run: func(cmd *cobra.Command, args []string) {
 
-			println("[!] This feature is not implemented yet!")
-			os.Exit(0)
+			/* obligatory skid ascii art */
+			fmt.Printf("%s\n\n", ASCII_ART)
+
+			exe, err := os.Open(opts.PEFilePath)
+			if err != nil {
+				panic(err)
+			}
+			defer exe.Close()
+
+			rs, err := winres.LoadFromEXE(exe)
+			if err != nil {
+				panic(err)
+			}
+
+			err = rc.LoadResourcesFromJson(rs, opts.VersionFilePath)
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Printf("[+] Successfully extracted PE metadata from JSON\n")
+
+			tmpPath := "/tmp/" + filepath.Base(opts.PEFilePath) + ".tmp"
+			out, err := os.Create(tmpPath)
+			if err != nil {
+				panic(err)
+			}
+			defer out.Close()
+
+			err = rs.WriteToEXE(out, exe, winres.WithAuthenticode(winres.IgnoreSignature))
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Printf("[+] New metadata is set !\n")
+
+			exe.Close()
+			out.Close()
+
+			os.Remove(opts.PEFilePath)
+			os.Rename(tmpPath, opts.PEFilePath)
+
+			fmt.Printf("[+] Done !\n")
 		},
 	}
 
@@ -234,7 +277,7 @@ func GetParser(opts *Options) *cobra.Command {
 	rootCmd.Flags().UintVarP(&opts.SleepTime, "sleep-time", "", defaults.SleepTime, "sleep time in seconds before executing loader (default: 0)")
 
 	spoofMetadata.Flags().StringVarP(&opts.PEFilePath, "pe", "p", defaults.PEFilePath, "PE file to spoof")
-	spoofMetadata.Flags().StringVarP(&opts.VersionFilePath, "file", "f", defaults.VersionFilePath, "versioninfo JSON file path")
+	spoofMetadata.Flags().StringVarP(&opts.VersionFilePath, "file", "f", defaults.VersionFilePath, "manifest file path (as JSON)")
 
 	return rootCmd
 }
