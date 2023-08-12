@@ -28,3 +28,4 @@ Misc:
     - indirect syscalls
     - support for dameonizing ?
     - introduce ppid spoofing ?
+    - add support for passing arguments to payload from command-line

@@ -5,9 +5,8 @@ import (
 )
 
 func GetCreateThreadTemplate(targetProcess string) string {
-	var _ = targetProcess // unused in this template
+	InformProcessUnused(targetProcess)
 
-	println("\n\n[!] PLEASE NOTE: shellcode will not be injected into new process with this method")
 	return fmt.Sprintf(`
 package main
 

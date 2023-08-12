@@ -16,6 +16,7 @@ const (
 
 	CRT              technique = "CRT"
 	SYSCALL          technique = "Syscall"
+	CreateFiber      technique = "CreateFiber"
 	CreateThread     technique = "CreateThread"
 	ProcessHollowing technique = "ProcessHollowing"
 )
@@ -49,11 +50,11 @@ func (e *technique) String() string {
 // Set must have pointer receiver so it doesn't change the value of a copy
 func (e *technique) Set(v string) error {
 	switch v {
-	case "CreateThread", "CRT", "ProcessHollowing", "Syscall":
+	case "CreateThread", "CRT", "ProcessHollowing", "Syscall", "CreateFiber":
 		*e = technique(v)
 		return nil
 	default:
-		return errors.New("must be one of \"CRT\", \"Syscall\", \"ProcessHollowing\" or \"CreateThread\"\n\n")
+		return errors.New("must be one of \"CRT\", \"Syscall\", \"CreateFiber\", \"ProcessHollowing\" or \"CreateThread\"\n\n")
 	}
 }
 

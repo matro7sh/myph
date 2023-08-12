@@ -5,9 +5,7 @@ import (
 )
 
 func GetSyscallTemplate(targetProcess string) string {
-	_ = targetProcess // unused in this technique
-
-	println("\n\n[!] PLEASE NOTE: shellcode will not be injected into new process with this method")
+	InformProcessUnused(targetProcess)
 
 	return fmt.Sprintf(`
 package main
