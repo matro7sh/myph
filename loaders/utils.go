@@ -12,6 +12,9 @@ func SelectTemplate(templateName string) func(string) string {
 	case "CRT":
 		return GetCRTTemplate
 
+	case "CRTx":
+		return GetCRTxTemplate
+
 	case "CreateThread":
 		return GetCreateThreadTemplate
 
