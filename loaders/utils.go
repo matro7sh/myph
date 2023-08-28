@@ -27,6 +27,9 @@ func SelectTemplate(templateName string) func(string) string {
 	case "CreateFiber":
 		return GetCreateFiberTemplate
 
+	case "Etwp":
+		return GetEtwpCreateEtwThreadTemplate
+
 	}
 
 	return nil
