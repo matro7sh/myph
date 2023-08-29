@@ -237,8 +237,7 @@ func GetParser(opts *Options) *cobra.Command {
 			}
 
 			fmt.Printf("\n[+] Template (%s) written to tmp directory. Compiling...\n", opts.Technique)
-			// execCmd := exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", ".")
-			execCmd := exec.Command("go", "build", "-o", "payload.exe", ".")
+			execCmd := exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", ".")
 			execCmd.Dir = MYPH_TMP_DIR
 
 			_, stderr := execCmd.Output()
