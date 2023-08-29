@@ -39,6 +39,29 @@ go install github.com/cmepw/myph@latest
 ### Usage
 
 ```
+
+              ...                                        -==[ M Y P H ]==-
+             ;::::;
+           ;::::; :;                                    In loving memory of
+         ;:::::'   :;                               Wassyl Iaroslavovytch Slipak
+        ;:::::;     ;.
+       ,:::::'       ;           OOO                       (1974 - 2016)
+       ::::::;       ;          OOOOO
+       ;:::::;       ;         OOOOOOOO
+      ,;::::::;     ;'         / OOOOOOO
+    ;::::::::: . ,,,;.        /  / DOOOOOO
+  .';:::::::::::::::::;,     /  /     DOOOO
+ ,::::::;::::::;;;;::::;,   /  /        DOOO        AV / EDR evasion framework
+; :::::: '::::::;;;::::: ,#/  /          DOOO           to pop shells and
+: ::::::: ;::::::;;::: ;::#  /            DOOO        make the blue team cry
+:: ::::::: ;:::::::: ;::::# /              DOO
+ : ::::::: ;:::::: ;::::::#/               DOO
+ ::: ::::::: ;; ;:::::::::##                OO       written with <3 by djnn
+ :::: ::::::: ;::::::::;:::#                OO                ------
+ ::::: ::::::::::::;' :;::#                O             https://djnn.sh
+   ::::: ::::::::;  /  /  :#
+   :::::: :::::;   /  /    #
+
 Usage:
   myph [flags]
   myph [command]
@@ -56,7 +79,7 @@ Flags:
   -p, --process string       target process to inject shellcode to (default "cmd.exe")
   -s, --shellcode string     shellcode path (default "msf.raw")
       --sleep-time uint      sleep time in seconds before executing loader (default: 0)
-  -t, --technique string     shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, Syscall) (default "CRT")
+  -t, --technique string     shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, Syscall, Etwp) (default "CRT")
   -v, --version              version for myph
 
 Use "myph [command] --help" for more information about a command.
@@ -70,6 +93,7 @@ This tool supports few methods for now, but aims to add more as time goes on:
 - CreateThread
 - Process hollowing
 - CreateRemoteThread
+- EtwpCreateEtwThread
 - CreateRemoteThreadEx
 
 If you don't know what that is about, go check out [this repository](https://github.com/CMEPW/BypassAV) :)~
