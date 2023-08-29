@@ -2,11 +2,8 @@
 ####### ROADMAP 1.2.0 #######
 #############################
 
-Templates:
-    - EtwpCreateEtwThread
-
 Misc:
-    - support for loading modules from PEB
+    - support for loading API calls from PEB
     - Research indirect syscalls
     - Refactoring CLI options to interfaces
     - Decrypt shellcode at the last possible time & split templates into trigger & prepare-payload functions
