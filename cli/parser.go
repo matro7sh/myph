@@ -42,6 +42,14 @@ const ASCII_ART = `
 
     `
 
+func BuildLoader(opts *Options) *exec.Cmd {
+	if true {
+		return exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "-buildmode=c-shared", "payload.dll", ".")
+	} else {
+		return exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", ".")
+	}
+}
+
 func GetParser(opts *Options) *cobra.Command {
 
 	version := "1.2.0"
@@ -237,7 +245,7 @@ func GetParser(opts *Options) *cobra.Command {
 			}
 
 			fmt.Printf("\n[+] Template (%s) written to tmp directory. Compiling...\n", opts.Technique)
-			execCmd := exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", ".")
+			execCmd := BuildLoader(opts)
 			execCmd.Dir = MYPH_TMP_DIR
 
 			_, stderr := execCmd.Output()
