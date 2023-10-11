@@ -18,6 +18,7 @@ func GetDefaultCLIOptions() Options {
 		SleepTime:       0,
 		PEFilePath:      "payload.exe",
 		VersionFilePath: "goversion.json",
+		BuildType:       "exe",
 	}
 
 	return opts
