@@ -92,7 +92,7 @@ func GetParser(opts *Options) *cobra.Command {
 			out.Close()
 
 			os.Remove(opts.PEFilePath)
-			os.Rename(tmpPath, opts.PEFilePath)
+			tools.MoveFile(tmpPath, opts.PEFilePath)
 
 			fmt.Printf("[+] Done !\n")
 		},
@@ -171,9 +171,6 @@ func GetParser(opts *Options) *cobra.Command {
 					panic(err)
 				}
 
-				fmt.Println("\n...downloading necessary library...")
-				fmt.Println("if it fails because of your internet connection, please consider using XOR or AES instead")
-
 				/* Running `go get "golang.org/x/crypto/chacha20poly1305"` in MYPH_TMP_DIR` */
 				execCmd := exec.Command("go", "get", "golang.org/x/crypto/chacha20poly1305")
 				execCmd.Dir = MYPH_TMP_DIR
@@ -187,9 +184,6 @@ func GetParser(opts *Options) *cobra.Command {
 					fmt.Println("[!] Could not encrypt with Blowfish")
 					panic(err)
 				}
-
-				fmt.Println("\n...downloading necessary library...")
-				fmt.Println("if it fails because of your internet connection, please consider using XOR or AES instead")
 
 				/* Running `go get golang.org/x/crypto/blowfish in MYPH_TMP_DIR` */
 				execCmd := exec.Command("go", "get", "golang.org/x/crypto/blowfish")
@@ -237,10 +231,21 @@ func GetParser(opts *Options) *cobra.Command {
 			}
 
 			fmt.Printf("\n[+] Template (%s) written to tmp directory. Compiling...\n", opts.Technique)
-			execCmd := exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", ".")
-			execCmd.Dir = MYPH_TMP_DIR
 
-			_, stderr := execCmd.Output()
+			var stderr error
+			if opts.WithDebug {
+				fmt.Printf("\n[!] debug mode enabled\n")
+
+				execCmd := exec.Command("go", "build", "-o", "payload.exe", ".")
+				execCmd.Dir = MYPH_TMP_DIR
+				_, stderr = execCmd.Output()
+
+			} else {
+				execCmd := exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", ".")
+				execCmd.Dir = MYPH_TMP_DIR
+				_, stderr = execCmd.Output()
+
+			}
 
 			if stderr != nil {
 				fmt.Printf("[!] error compiling shellcode: %s\n", stderr.Error())
@@ -275,6 +280,7 @@ func GetParser(opts *Options) *cobra.Command {
 	rootCmd.Flags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, chacha20, XOR, blowfish)")
 	rootCmd.Flags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")
 	rootCmd.Flags().UintVarP(&opts.SleepTime, "sleep-time", "", defaults.SleepTime, "sleep time in seconds before executing loader (default: 0)")
+	rootCmd.Flags().BoolVarP(&opts.WithDebug, "debug", "d", false, "builds binary with debug mode")
 
 	spoofMetadata.Flags().StringVarP(&opts.PEFilePath, "pe", "p", defaults.PEFilePath, "PE file to spoof")
 	spoofMetadata.Flags().StringVarP(&opts.VersionFilePath, "file", "f", defaults.VersionFilePath, "manifest file path (as JSON)")

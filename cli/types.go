@@ -99,4 +99,7 @@ type Options struct {
 
 	// PE filepath
 	PEFilePath string
+
+	// Builds with debug symbol
+	WithDebug bool
 }
