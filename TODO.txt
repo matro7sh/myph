@@ -24,3 +24,18 @@ Misc:
     - support for dameonizing ?
     - introduce ppid spoofing ?
     - add support for passing arguments to payload from command-line
+
+
+#############################
+####### ROADMAP 1.4.0 #######
+#############################
+
+
+Misc:
+    - add support for attaching to new processes
+    - add support for multiple hashing algorithms for retrieving API calls through PEB
+    - add support for variable assignment randomization
+        -> should assign variables differently (as random as possible) in order to
+        have different signatures each time
+    - optionally implement sandbox checks
+

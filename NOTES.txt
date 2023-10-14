@@ -4,4 +4,5 @@
 
 - https://media.defcon.org/DEF%20CON%2029/DEF%20CON%2029%20workshops/DEF%20CON%2029%20Workshop%20Ben%20Kurtz%20Writing%20Golang%20Malwar.pdf
 
+- https://evasions.checkpoint.com
 
