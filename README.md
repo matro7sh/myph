@@ -39,7 +39,6 @@ go install github.com/cmepw/myph@latest
 ### Usage
 
 ```
-
               ...                                        -==[ M Y P H ]==-
              ;::::;
            ;::::; :;                                    In loving memory of
@@ -72,6 +71,7 @@ Available Commands:
   spoof       spoof PE metadata using versioninfo
 
 Flags:
+  -d, --debug                builds binary with debug symbols
   -e, --encryption encKind   encryption method. (allowed: AES, chacha20, XOR, blowfish) (default AES)
   -h, --help                 help for myph
   -k, --key string           encryption key, auto-generated if empty. (if used by --encryption)
