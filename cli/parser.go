@@ -106,6 +106,10 @@ func GetParser(opts *Options) *cobra.Command {
 		Long:               ASCII_ART,
 		Run: func(cmd *cobra.Command, args []string) {
 
+            /*
+                TODO(djnn): refactor all this shit
+            */
+
 			/* obligatory skid ascii art */
 			fmt.Printf("%s\n\n", ASCII_ART)
 
@@ -232,6 +236,14 @@ func GetParser(opts *Options) *cobra.Command {
 
 			fmt.Printf("\n[+] Template (%s) written to tmp directory. Compiling...\n", opts.Technique)
 
+            execCmd := exec.Command("go", "get", "github.com/cmepw/myph/internals")
+            execCmd.Dir = MYPH_TMP_DIR
+            _, err = execCmd.Output()
+
+            execCmd = exec.Command("go", "get", "github.com/Binject/debug/pe")
+            execCmd.Dir = MYPH_TMP_DIR
+            _, _ = execCmd.Output()
+
 			var stderr error
 			if opts.WithDebug {
 				fmt.Printf("\n[!] debug mode enabled\n")
@@ -276,7 +288,7 @@ func GetParser(opts *Options) *cobra.Command {
 	rootCmd.Flags().StringVarP(&opts.OutName, "out", "f", defaults.OutName, "output name")
 	rootCmd.Flags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
 	rootCmd.Flags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
-	rootCmd.Flags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, Syscall, Etwp)")
+	rootCmd.Flags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, Syscall, SyscallTest, Etwp)")
 	rootCmd.Flags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, chacha20, XOR, blowfish)")
 	rootCmd.Flags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")
 	rootCmd.Flags().UintVarP(&opts.SleepTime, "sleep-time", "", defaults.SleepTime, "sleep time in seconds before executing loader (default: 0)")

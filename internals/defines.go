@@ -51,4 +51,4 @@ var Ntdll = []ItemHash{
 	},
 }
 
-func LoadLibraryA(lpLibFileName *uint8) uintptr
+type LoadLibraryA func(lpLibFileName *uint8) uintptr
