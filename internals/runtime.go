@@ -36,12 +36,12 @@ func LoadFunctionFromHash(
 	hashing_algorithm func(string) string,
 	hashedName string,
 	dll *pe.File,
-) (*Function, error) {
+) (uintptr, error) {
 
 	/* retrieve function exports */
 	exports, err := dll.Exports()
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	for _, x := range exports {
@@ -51,16 +51,8 @@ func LoadFunctionFromHash(
 
 			/* get in-memory offset from rva */
 			offset := rva2offset(dll, x.VirtualAddress)
-			return &Function{
-				Name:    x.Name,
-				Address: uintptr(offset),
-			}, nil
+			return uintptr(offset), nil
 		}
 	}
-	return nil, errors.New("Function not found")
-}
-
-type Function struct {
-	Name    string
-	Address uintptr
+	return 0, errors.New("Function not found")
 }
