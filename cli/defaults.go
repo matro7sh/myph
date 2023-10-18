@@ -16,6 +16,7 @@ func GetDefaultCLIOptions() Options {
 		Key:           "",
 		Technique:     "CRT",
 		SleepTime:     0,
+		Persistence:   "",
 	}
 
 	return opts

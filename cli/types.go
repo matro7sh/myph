@@ -90,4 +90,6 @@ type Options struct {
 
 	// Sleep time before running execution
 	SleepTime uint
+
+	Persistence string
 }
