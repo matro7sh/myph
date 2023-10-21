@@ -104,7 +104,7 @@ func CreateTmpProjectRoot(path string, persist string) error {
 	}
 
 	var go_mod = []byte(`
-module github.com/cmepw/myph
+module whatever
 
 go 1.19
 
