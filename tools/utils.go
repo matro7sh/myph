@@ -132,7 +132,7 @@ func GetMainTemplate(
 	key string,
 	sc string,
 	sleepTime uint,
-	export bool,
+	shouldExport bool,
 ) string {
 
 	/* if hex encoding is used, it does not require to go through StdEncoding */
@@ -145,7 +145,7 @@ func GetMainTemplate(
 func main() {}
 //export entry
 func entry() {`
-	if !export {
+	if !shouldExport {
 		exportImpStr = ""
 		exportexpStr = "func main() {"
 	}
@@ -162,14 +162,6 @@ import (
 var Key = %s
 var Code = %s
 %s
-
-	f, err := os.Create("./data.txt")
-	defer f.Close()
-    _, err2 := f.WriteString("old falcon\n")
-	if err2 != nil {
-        fmt.Println("c'est fait ça marche pas mais c'est quand même exec tqt c'est trop bien")
-    }
-	fmt.Println("c'est fait ça marche c'est trop bien")
 
     decodedSc, _ := %s.DecodeString(Code)
     decodedKey, _ := %s.DecodeString(Key)

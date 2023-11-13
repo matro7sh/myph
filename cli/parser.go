@@ -43,17 +43,16 @@ const ASCII_ART = `
     `
 
 func BuildLoader(opts *Options) *exec.Cmd {
-	os.Setenv("GOOS", opts.OS)
-	os.Setenv("GOARCH", opts.Arch)
-	os.Setenv("CGO_ENABLED", "1")
-	os.Setenv("CC", "x86_64-w64-mingw32-gcc")
-
 	if opts.BuildType == "dll" {
-		fmt.Println("[*] Compile payload as dll...")
+		os.Setenv("GOOS", opts.OS)
+		os.Setenv("GOARCH", opts.Arch)
+		os.Setenv("CGO_ENABLED", "1")
+		os.Setenv("CC", "x86_64-w64-mingw32-gcc")
+		fmt.Println("[*] Compiling payload as dll...")
 
 		return exec.Command("go", "build", "-buildmode=c-shared", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.dll", ".")
 	} else if opts.BuildType == "exe" {
-		fmt.Println("[*] Compile payload as executable...")
+		fmt.Println("[*] Compiling payload as executable...")
 
 		return exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", ".")
 	} else {
