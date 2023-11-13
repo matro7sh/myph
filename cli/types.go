@@ -99,4 +99,7 @@ type Options struct {
 
 	// PE filepath
 	PEFilePath string
+
+	// Build type
+	BuildType string
 }
