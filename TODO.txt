@@ -2,19 +2,11 @@
 ####### ROADMAP 1.2.0 #######
 #############################
 
-Templates:
-    - CreateRemoteThreadEx
-    - CreateFiber
-    - EtwpCreateEtwThread
-
 Misc:
-    - support for loading modules from PEB
+    - support for loading API calls from PEB
     - Research indirect syscalls
     - Refactoring CLI options to interfaces
     - Decrypt shellcode at the last possible time & split templates into trigger & prepare-payload functions
-
-Commands:
-    - Add support for GoVersionInfo
 
 
 #############################
@@ -31,3 +23,4 @@ Misc:
     - indirect syscalls
     - support for dameonizing ?
     - introduce ppid spoofing ?
+    - add support for passing arguments to payload from command-line

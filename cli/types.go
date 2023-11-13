@@ -15,7 +15,10 @@ const (
 	EncKindC20 encKind = "chacha20"
 
 	CRT              technique = "CRT"
+	CRTx             technique = "CRTx"
+	ETWP             technique = "Etwp"
 	SYSCALL          technique = "Syscall"
+	CreateFiber      technique = "CreateFiber"
 	CreateThread     technique = "CreateThread"
 	ProcessHollowing technique = "ProcessHollowing"
 )
@@ -49,11 +52,11 @@ func (e *technique) String() string {
 // Set must have pointer receiver so it doesn't change the value of a copy
 func (e *technique) Set(v string) error {
 	switch v {
-	case "CreateThread", "CRT", "ProcessHollowing", "Syscall":
+	case "CreateThread", "CRT", "ProcessHollowing", "Syscall", "CreateFiber", "CRTx", "Etwp":
 		*e = technique(v)
 		return nil
 	default:
-		return errors.New("must be one of \"CRT\", \"Syscall\", \"ProcessHollowing\" or \"CreateThread\"\n\n")
+		return errors.New("must be one of \"CRT\", \"CRTx\", \"Syscall\", \"CreateFiber\", \"Etwp\", \"ProcessHollowing\" or \"CreateThread\"\n\n")
 	}
 }
 
@@ -91,5 +94,16 @@ type Options struct {
 	// Sleep time before running execution
 	SleepTime uint
 
+
+  // Registry-Persistence handler
 	Persistence string
+
+	// Goversion filepath
+	VersionFilePath string
+
+	// PE filepath
+	PEFilePath string
+
+	// Build type
+	BuildType string
 }
