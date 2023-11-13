@@ -76,6 +76,7 @@ Flags:
   -h, --help                 help for myph
   -k, --key string           encryption key, auto-generated if empty. (if used by --encryption)
   -f, --out string           output name (default "payload.exe")
+  -z, --peristence string    name of the binary being placed in '%APPDATA%' and in 'SOFTWARE\Microsoft\Windows\CurrentVersion\Run' reg key (default: "")
   -p, --process string       target process to inject shellcode to (default "cmd.exe")
   -s, --shellcode string     shellcode path (default "msf.raw")
       --sleep-time uint      sleep time in seconds before executing loader (default: 0)
