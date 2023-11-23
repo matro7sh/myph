@@ -303,22 +303,20 @@ func GetParser(opts *Options) *cobra.Command {
 	defaults := GetDefaultCLIOptions()
 	var rootCmd = runLoader
 
-
 	rootCmd.AddCommand(spoofMetadata)
 
 	rootCmd.Flags().StringVarP(&opts.OutName, "out", "f", defaults.OutName, "output name")
 	rootCmd.Flags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
 	rootCmd.Flags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
-	rootCmd.Flags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, Callback, Syscall, Etwp)")
+	rootCmd.Flags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, EnumCalendarInfoA, Syscall, Etwp)")
 	rootCmd.Flags().StringVarP(&opts.BuildType, "builtype", "b", defaults.BuildType, "define the output type (allowed: exe, dll)")
 	rootCmd.Flags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, chacha20, XOR, blowfish)")
 	rootCmd.Flags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")
 	rootCmd.Flags().UintVarP(&opts.SleepTime, "sleep-time", "", defaults.SleepTime, "sleep time in seconds before executing loader (default: 0)")
-	rootCmd.PersistentFlags().StringVarP(&opts.Persistence, "peristence", "z", defaults.Persistence, "name of the binary being placed in '%APPDATA%' and in 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run' reg key (default: \"\")")
+	rootCmd.PersistentFlags().StringVarP(&opts.Persistence, "persistence", "z", defaults.Persistence, "name of the binary being placed in '%APPDATA%' and in 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run' reg key (default: \"\")")
 
 	spoofMetadata.Flags().StringVarP(&opts.PEFilePath, "pe", "p", defaults.PEFilePath, "PE file to spoof")
 	spoofMetadata.Flags().StringVarP(&opts.VersionFilePath, "file", "f", defaults.VersionFilePath, "manifest file path (as JSON)")
-
 
 	return rootCmd
 

