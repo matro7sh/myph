@@ -94,8 +94,7 @@ type Options struct {
 	// Sleep time before running execution
 	SleepTime uint
 
-
-  // Registry-Persistence handler
+	// Registry-Persistence handler
 	Persistence string
 
 	// Goversion filepath
