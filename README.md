@@ -81,6 +81,7 @@ Flags:
   -s, --shellcode string     shellcode path (default "msf.raw")
       --sleep-time uint      sleep time in seconds before executing loader (default: 0)
   -t, --technique string     shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, Syscall, Etwp) (default "CRT")
+
   -v, --version              version for myph
 
 Use "myph [command] --help" for more information about a command.
@@ -93,6 +94,7 @@ This tool supports few methods for now, but aims to add more as time goes on:
 - CreateFiber
 - CreateThread
 - Process hollowing
+- Callback
 - CreateRemoteThread
 - EtwpCreateEtwThread
 - CreateRemoteThreadEx

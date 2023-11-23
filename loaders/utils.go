@@ -24,11 +24,16 @@ func SelectTemplate(templateName string) func(string) string {
 	case "Syscall":
 		return GetSyscallTemplate
 
+
+	case "Callback":
+		return GetCallbackTemplate
+
 	case "CreateFiber":
 		return GetCreateFiberTemplate
 
 	case "Etwp":
 		return GetEtwpCreateEtwThreadTemplate
+
 
 	}
 
