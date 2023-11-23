@@ -228,7 +228,7 @@ func GetParser(opts *Options) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&opts.OutName, "out", "f", defaults.OutName, "output name")
 	cmd.PersistentFlags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
 	cmd.PersistentFlags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
-	cmd.PersistentFlags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, ProcessHollowing, CreateThread, Syscall)")
+	cmd.PersistentFlags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, ProcessHollowing, CreateThread, Syscall, Callback)")
 
 	cmd.PersistentFlags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, chacha20, XOR, blowfish)")
 	cmd.PersistentFlags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")

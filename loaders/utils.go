@@ -15,6 +15,8 @@ func SelectTemplate(templateName string) func(string) string {
 	case "Syscall":
 		return GetSyscallTemplate
 
+	case "Callback":
+		return GetCallbackTemplate
 	}
 
 	return nil
