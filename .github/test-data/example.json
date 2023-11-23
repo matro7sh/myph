@@ -1,0 +1,35 @@
+{
+    "RT_GROUP_ICON": {
+        "APP": {
+            "0000": [
+                "smersh.png"
+            ]
+        },
+        "#42": {
+            "040C": "pwned.ico"
+        }
+    },
+    "RT_MANIFEST": {
+        "#1": {
+            "0409": {}
+        }
+    },
+    "RT_VERSION": {
+        "#1": {
+            "0409": {
+                "info": {
+                    "0409": {
+                        "FileDescription": "golang shellcode loader",
+                        "InternalName": "myph",
+                        "LegalCopyright": "CMEPW -- GPLv3",
+                        "OriginalFilename": "payload.exe",
+                        "ProductName": "myph-payload",
+                        "ProductVersion": "1.0",
+                        "FileVersion": "1.0",
+                        "Comments": "Ca devrait le faire"
+                    }
+                }
+            }
+        }
+    }
+}
