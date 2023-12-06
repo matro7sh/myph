@@ -24,3 +24,5 @@ myph-out/
 # Go workspace file
 go.work
 *.raw
+
+dist/
