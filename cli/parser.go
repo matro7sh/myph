@@ -43,9 +43,9 @@ const ASCII_ART = `
     `
 
 func BuildLoader(opts *Options) *exec.Cmd {
+    os.Setenv("GOOS", opts.OS)
+    os.Setenv("GOARCH", opts.Arch)
 	if opts.BuildType == "dll" {
-		os.Setenv("GOOS", opts.OS)
-		os.Setenv("GOARCH", opts.Arch)
 		os.Setenv("CGO_ENABLED", "1")
 		os.Setenv("CC", "x86_64-w64-mingw32-gcc")
 		fmt.Println("[*] Compiling payload as dll...")
