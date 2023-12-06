@@ -43,8 +43,8 @@ const ASCII_ART = `
     `
 
 func BuildLoader(opts *Options) *exec.Cmd {
-    os.Setenv("GOOS", opts.OS)
-    os.Setenv("GOARCH", opts.Arch)
+	os.Setenv("GOOS", opts.OS)
+	os.Setenv("GOARCH", opts.Arch)
 	if opts.BuildType == "dll" {
 		os.Setenv("CGO_ENABLED", "1")
 		os.Setenv("CC", "x86_64-w64-mingw32-gcc")
@@ -63,7 +63,7 @@ func BuildLoader(opts *Options) *exec.Cmd {
 
 func GetParser(opts *Options) *cobra.Command {
 
-	version := "1.2.0"
+	version := "1.2.2"
 	var spoofMetadata = &cobra.Command{
 		Use:                "spoof",
 		Version:            version,
