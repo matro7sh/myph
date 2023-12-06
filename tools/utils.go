@@ -162,7 +162,6 @@ import (
     "time"
     "os"
     enc "encoding/%s"
-	"fmt"
 )
 
 %s
