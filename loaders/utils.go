@@ -27,6 +27,9 @@ func SelectTemplate(templateName string) func(string) string {
 	case "EnumCalendarInfoA":
 		return GetEnumCalendarInfoATemplate
 
+	case "EnumDirTreeW":
+		return EnumDirTreeWTemplate
+
 	case "CreateFiber":
 		return GetCreateFiberTemplate
 

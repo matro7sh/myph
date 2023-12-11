@@ -93,6 +93,7 @@ This tool supports few methods for now, but aims to add more as time goes on:
 - CreateThread
 - Process hollowing
 - EnumCalendarInfoA
+- EnumDirTreeW
 - CreateRemoteThread
 - EtwpCreateEtwThread
 - CreateRemoteThreadEx
