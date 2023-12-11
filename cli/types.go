@@ -22,6 +22,7 @@ const (
 	CreateThread      technique = "CreateThread"
 	ProcessHollowing  technique = "ProcessHollowing"
 	EnumCalendarInfoA technique = "EnumCalendarInfoA"
+	EnumDirTreeW      technique = "EnumDirTreeW"
 )
 
 // String is used both by fmt.Print and by Cobra in help text
@@ -53,11 +54,11 @@ func (e *technique) String() string {
 // Set must have pointer receiver so it doesn't change the value of a copy
 func (e *technique) Set(v string) error {
 	switch v {
-	case "CreateThread", "CRT", "ProcessHollowing", "Syscall", "CreateFiber", "CRTx", "EnumCalendarInfoA", "Etwp":
+	case "CreateThread", "CRT", "ProcessHollowing", "Syscall", "CreateFiber", "CRTx", "EnumCalendarInfoA", "EnumDirTreeW", "Etwp":
 		*e = technique(v)
 		return nil
 	default:
-		return errors.New("must be one of \"CRT\", \"CRTx\", \"Syscall\", \"CreateFiber\", \"Etwp\", \"EnumCalendarInfoA\", \"ProcessHollowing\" or \"CreateThread\"\n\n")
+		return errors.New("must be one of \"CRT\", \"CRTx\", \"Syscall\", \"CreateFiber\", \"Etwp\", \"EnumCalendarInfoA\", \"EnumDirTreeW\", \"ProcessHollowing\" or \"CreateThread\"\n\n")
 	}
 }
 
