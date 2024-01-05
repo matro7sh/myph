@@ -1,7 +1,7 @@
 package loaders
 
 func InformExpermimental() {
-    println("[!] The API hashing feature is still in an an experimental stage!!")
+	println("[!] The API hashing feature is still in an an experimental stage!!")
 }
 
 func InformProcessUnused(process string) {
@@ -33,9 +33,9 @@ func SelectTemplate(templateName string, useApiHashing bool, apiHashTechnique st
 		"NtCreateThreadEx":  NtCreateThreadExTemplate{UseApiHashing: useApiHashing, HashMethod: apiHashTechnique},
 	}
 
-    if useApiHashing {
-        InformExpermimental()
-    }
+	if useApiHashing {
+		InformExpermimental()
+	}
 
 	template, exist := methodes[templateName]
 	if exist {

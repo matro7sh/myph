@@ -331,7 +331,7 @@ func GetParser(opts *Options) *cobra.Command {
 	rootCmd.Flags().UintVarP(&opts.SleepTime, "sleep-time", "", defaults.SleepTime, "sleep time in seconds before executing loader (default: 0)")
 	rootCmd.Flags().BoolVarP(&opts.WithDebug, "debug", "d", false, "builds binary with debug symbols")
 	rootCmd.Flags().BoolVarP(&opts.UseAPIHashing, "use-api-hashing", "", false, "Use API Hashing")
-    // TODO(djnn): re-add this flag once supported
+	// TODO(djnn): re-add this flag once supported
 	// rootCmd.Flags().StringVarP(&opts.APIHashingType, "api-hashing-type", "", "DJB2", "Hashing algorithm used for API hashing")
 	rootCmd.Flags().StringVarP(&opts.Persistence, "persistence", "z", defaults.Persistence, "name of the binary being placed in '%APPDATA%' and in 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run' reg key (default: \"\")")
 
