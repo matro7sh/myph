@@ -18,7 +18,7 @@ const (
 	CRTx             technique = "CRTx"
 	ETWP             technique = "Etwp"
 	SYSCALL          technique = "Syscall"
-    SYSCALLTEST      technique = "SyscallTest"
+	SYSCALLTEST      technique = "SyscallTest"
 	CreateFiber      technique = "CreateFiber"
 	CreateThread     technique = "CreateThread"
 	ProcessHollowing technique = "ProcessHollowing"

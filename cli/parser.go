@@ -106,9 +106,9 @@ func GetParser(opts *Options) *cobra.Command {
 		Long:               ASCII_ART,
 		Run: func(cmd *cobra.Command, args []string) {
 
-            /*
-                TODO(djnn): refactor all this shit
-            */
+			/*
+			   TODO(djnn): refactor all this shit
+			*/
 
 			/* obligatory skid ascii art */
 			fmt.Printf("%s\n\n", ASCII_ART)
@@ -236,9 +236,9 @@ func GetParser(opts *Options) *cobra.Command {
 
 			fmt.Printf("\n[+] Template (%s) written to tmp directory. Compiling...\n", opts.Technique)
 
-            execCmd := exec.Command("go", "get", "github.com/Binject/debug/pe")
-            execCmd.Dir = MYPH_TMP_DIR
-            _, _ = execCmd.Output()
+			execCmd := exec.Command("go", "get", "github.com/Binject/debug/pe")
+			execCmd.Dir = MYPH_TMP_DIR
+			_, _ = execCmd.Output()
 
 			var stderr error
 			if opts.WithDebug {
