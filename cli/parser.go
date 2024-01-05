@@ -50,9 +50,17 @@ func BuildLoader(opts *Options) *exec.Cmd {
 		os.Setenv("CC", "x86_64-w64-mingw32-gcc")
 		fmt.Println("[*] Compiling payload as dll...")
 
+		if opts.WithDebug {
+			return exec.Command("go", "build", "-buildmode=c-shared", "-o", "payload.dll", ".")
+		}
+
 		return exec.Command("go", "build", "-buildmode=c-shared", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.dll", ".")
 	} else if opts.BuildType == "exe" {
 		fmt.Println("[*] Compiling payload as executable...")
+
+		if opts.WithDebug {
+			return exec.Command("go", "build", "-o", "payload.exe", ".")
+		}
 
 		return exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", ".")
 	} else {
@@ -253,7 +261,7 @@ func GetParser(opts *Options) *cobra.Command {
 				panic(err)
 			}
 
-			templateFunc := loaders.SelectTemplate(opts.Technique)
+			templateFunc := loaders.SelectTemplate(opts.Technique, opts.UseAPIHashing, opts.APIHashingType)
 			if templateFunc == nil {
 				fmt.Printf("[!] Could not find a technique for this method: %s\n", opts.Technique)
 				os.Exit(1)
@@ -266,37 +274,32 @@ func GetParser(opts *Options) *cobra.Command {
 
 			fmt.Printf("\n[+] Template (%s) written to tmp directory. Compiling...\n", opts.Technique)
 
-			execCmd := exec.Command("go", "get", "github.com/Binject/debug/pe")
-			execCmd.Dir = MYPH_TMP_DIR
-			_, _ = execCmd.Output()
-
-			execCmd = BuildLoader(opts)
-			execCmd.Dir = MYPH_TMP_DIR
-			_, _ = execCmd.Output()
-
-			var stderr error
-			if opts.WithDebug {
-				fmt.Printf("\n[!] debug mode enabled\n")
-
-				execCmd := exec.Command("go", "build", "-o", "payload.exe", ".")
-				execCmd.Dir = MYPH_TMP_DIR
-				_, stderr = execCmd.Output()
-
-			} else {
-				execCmd := exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", ".")
-				execCmd.Dir = MYPH_TMP_DIR
-				_, stderr = execCmd.Output()
-
+			if opts.UseAPIHashing {
+				execGoGetCmd := exec.Command("go", "get", "github.com/Binject/debug/pe")
+				execGoGetCmd.Dir = MYPH_TMP_DIR
+				_, _ = execGoGetCmd.Output()
 			}
 
+			execCmd := BuildLoader(opts)
+			execCmd.Dir = MYPH_TMP_DIR
+
+			var stderr error
+			_, stderr = execCmd.Output()
+
 			if stderr != nil {
+
+				command := "go build -ldflags \"-s -w -H=windowsgui\" -o payload.exe"
+				if opts.BuildType == "dll" {
+					command = "CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc go build -buildmode=c-shared -ldflags \"-s -w -H=windowsgui\" -o payload.dll"
+				}
+
 				fmt.Printf("[!] error compiling shellcode: %s\n", stderr.Error())
 				fmt.Printf(
 					"\nYou may try to run the following command in %s to find out what happend:\n\n GOOS=%s GOARCH=%s %s\n\n",
 					MYPH_TMP_DIR,
 					opts.OS,
 					opts.Arch,
-					"go build -ldflags \"-s -w -H=windowsgui\" -o payload.exe",
+					command,
 				)
 
 				fmt.Println("If you want to submit a bug report, please add the output from this command...Thank you <3")
