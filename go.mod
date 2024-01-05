@@ -3,6 +3,7 @@ module github.com/cmepw/myph
 go 1.19
 
 require (
+	github.com/Binject/debug v0.0.0-20230508195519-26db73212a7a
 	github.com/spf13/cobra v1.7.0
 	github.com/tc-hib/winres v0.2.0
 	golang.org/x/crypto v0.11.0
