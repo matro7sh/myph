@@ -12,31 +12,35 @@ package internals
 */
 
 import (
+	"encoding/binary"
 	"errors"
 
 	"github.com/Binject/debug/pe"
 )
 
 func rva2offset(pe *pe.File, rva uint32) uint32 {
-	for _, hdr := range pe.Sections {
-
-		virtualAddr := uint64(hdr.VirtualAddress)
-		virtualSize := uint64(hdr.VirtualAddress + hdr.VirtualSize)
-		base := uint64(rva)
-
-		if base < virtualSize && base > virtualAddr {
-			return rva - hdr.VirtualAddress - hdr.Offset
+    for _, hdr := range pe.Sections {
+		baseoffset := uint64(rva)
+		if baseoffset > uint64(hdr.VirtualAddress) &&
+			baseoffset < uint64(hdr.VirtualAddress+hdr.VirtualSize) {
+			return rva - hdr.VirtualAddress + hdr.Offset
 		}
 	}
-
 	return rva
 }
+
+func HashedSyscall(callid uint16, argh ...uintptr) uintptr {
+    rvalue := runSyscall(callid, argh...)
+    return uintptr(rvalue)
+}
+
+func runSyscall(callid uint16, argh ...uintptr) (errcode uint32)
 
 func LoadFunctionFromHash(
 	hashing_algorithm func(string) string,
 	hashedName string,
 	dll *pe.File,
-) (uintptr, error) {
+) (uint16, error) {
 
 	/* retrieve function exports */
 	exports, err := dll.Exports()
@@ -51,7 +55,13 @@ func LoadFunctionFromHash(
 
 			/* get in-memory offset from rva */
 			offset := rva2offset(dll, x.VirtualAddress)
-			return uintptr(offset), nil
+            dllBytes, err := dll.Bytes(); if err != nil {
+                return 0, errors.New("could not retrieve bytes from dll...")
+            }
+
+            buff := dllBytes[offset : offset + 10]
+            sysId := binary.LittleEndian.Uint16(buff[4:8])
+			return sysId, nil
 		}
 	}
 	return 0, errors.New("Function not found")
