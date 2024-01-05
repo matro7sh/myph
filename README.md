@@ -39,6 +39,7 @@ go install github.com/cmepw/myph@latest
 ### Usage
 
 ```
+
               ...                                        -==[ M Y P H ]==-
              ;::::;
            ;::::; :;                                    In loving memory of
@@ -71,21 +72,21 @@ Available Commands:
   spoof       spoof PE metadata using versioninfo
 
 Flags:
-<<<<<<< HEAD
-  -d, --debug                builds binary with debug symbols
-=======
-  -b, --builtype string      define the output type (allowed: exe, dll) (default "exe")
->>>>>>> c5787c678d5d11672c780f0cd36fc51ba99b0436
-  -e, --encryption encKind   encryption method. (allowed: AES, chacha20, XOR, blowfish) (default AES)
-  -h, --help                 help for myph
-  -k, --key string           encryption key, auto-generated if empty. (if used by --encryption)
-  -f, --out string           output name (default "payload.exe")
-  -z, --persistence string   name of the binary being placed in '%APPDATA%' and in 'SOFTWARE\Microsoft\Windows\CurrentVersion\Run' reg key (default: "")
-  -p, --process string       target process to inject shellcode to (default "cmd.exe")
-  -s, --shellcode string     shellcode path (default "msf.raw")
-      --sleep-time uint      sleep time in seconds before executing loader (default: 0)
-  -t, --technique string     shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, EnumCalendarInfoA, Syscall, Etwp) (default "CRT")
-  -v, --version              version for myph
+      --api-hashing-type string   Hashing algorithm used for API hashing (default "DJB2")
+  -d, --debug                     builds binary with debug symbols
+  -e, --encryption encKind        encryption method. (allowed: AES, chacha20, XOR, blowfish) (default AES)
+  -h, --help                      help for myph
+  -k, --key string                encryption key, auto-generated if empty. (if used by --encryption)
+  -f, --out string                output name (default "payload.exe")
+  -z, --persistence string        name of the binary being placed in '%APPDATA%' and in 'SOFTWARE\Microsoft\Windows\CurrentVersion\Run' reg key (default: "")
+  -p, --process string            target process to inject shellcode to (default "cmd.exe")
+  -s, --shellcode string          shellcode path (default "msf.raw")
+      --sleep-time uint           sleep time in seconds before executing loader (default: 0)
+  -t, --technique string          shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, NtCreateThreadEx, Syscall, SyscallTest, Etwp) (default "CRT")
+      --use-api-hashing           Use API Hashing
+  -v, --version                   version for myph
+
+Use "myph [command] --help" for more information about a command.
 ```
 
 #### Loader Methods
@@ -94,6 +95,7 @@ This tool supports few methods for now, but aims to add more as time goes on:
 - Syscall
 - CreateFiber
 - CreateThread
+- NtCreateThreadEx
 - Process hollowing
 - EnumCalendarInfoA
 - CreateRemoteThread

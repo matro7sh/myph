@@ -330,7 +330,9 @@ func GetParser(opts *Options) *cobra.Command {
 	rootCmd.Flags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")
 	rootCmd.Flags().UintVarP(&opts.SleepTime, "sleep-time", "", defaults.SleepTime, "sleep time in seconds before executing loader (default: 0)")
 	rootCmd.Flags().BoolVarP(&opts.WithDebug, "debug", "d", false, "builds binary with debug symbols")
-	rootCmd.PersistentFlags().StringVarP(&opts.Persistence, "persistence", "z", defaults.Persistence, "name of the binary being placed in '%APPDATA%' and in 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run' reg key (default: \"\")")
+	rootCmd.Flags().BoolVarP(&opts.UseAPIHashing, "use-api-hashing", "", false, "Use API Hashing")
+	rootCmd.Flags().StringVarP(&opts.APIHashingType, "api-hashing-type", "", "DJB2", "Hashing algorithm used for API hashing")
+	rootCmd.Flags().StringVarP(&opts.Persistence, "persistence", "z", defaults.Persistence, "name of the binary being placed in '%APPDATA%' and in 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run' reg key (default: \"\")")
 
 	spoofMetadata.Flags().StringVarP(&opts.PEFilePath, "pe", "p", defaults.PEFilePath, "PE file to spoof")
 	spoofMetadata.Flags().StringVarP(&opts.VersionFilePath, "file", "f", defaults.VersionFilePath, "manifest file path (as JSON)")

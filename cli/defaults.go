@@ -21,6 +21,8 @@ func GetDefaultCLIOptions() Options {
 		WithDebug:       false,
 		BuildType:       "exe",
 		Persistence:     "",
+		UseAPIHashing:   false,
+		APIHashingType:  "DJB2",
 	}
 
 	return opts

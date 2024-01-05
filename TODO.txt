@@ -1,15 +1,10 @@
 #############################
-####### ROADMAP 1.2.2 #######
+####### ROADMAP 1.2.3 #######
 #############################
 
 Misc:
     - support for loading API calls from PEB
-    - Refactoring CLI options to interfaces
     - Decrypt shellcode at the last possible time & split templates into trigger & prepare-payload functions
-
-
-Encoders:
-    - add support for SGN
 
 
 #############################
@@ -22,8 +17,11 @@ Commands:
 Sleep / jitter:
     - Ekko
 
+Encoders:
+    - add support for SGN
 
-dll:
+
+Dll:
     - hijacking techniques (teams/onedrive)
 
 Misc:
