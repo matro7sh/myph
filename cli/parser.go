@@ -44,7 +44,7 @@ const ASCII_ART = `
 
 func GetParser(opts *Options) *cobra.Command {
 
-	version := "1.2.0"
+	version := "1.2.1"
 	var spoofMetadata = &cobra.Command{
 		Use:                "spoof",
 		Version:            version,
@@ -236,11 +236,7 @@ func GetParser(opts *Options) *cobra.Command {
 
 			fmt.Printf("\n[+] Template (%s) written to tmp directory. Compiling...\n", opts.Technique)
 
-            execCmd := exec.Command("go", "get", "github.com/cmepw/myph/internals")
-            execCmd.Dir = MYPH_TMP_DIR
-            _, err = execCmd.Output()
-
-            execCmd = exec.Command("go", "get", "github.com/Binject/debug/pe")
+            execCmd := exec.Command("go", "get", "github.com/Binject/debug/pe")
             execCmd.Dir = MYPH_TMP_DIR
             _, _ = execCmd.Output()
 
