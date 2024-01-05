@@ -90,7 +90,7 @@ __IMPORT__STATEMENT__
 __CONST__STATEMENT__
 
 func ExecuteOrderSixtySix(shellcode []byte) {
-    
+
 __IMPORT__PROCESS__
 
 }

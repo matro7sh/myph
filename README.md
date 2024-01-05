@@ -28,9 +28,9 @@ make  # you can also use `make help` to check recipes
 go build -o myph .
 ```
 
-> You can also grab the latest release from [here](https://github.com/CMEPW/myph/releases/)
+> You can also grab the latest release from [here](https://github.com/mato7sh/myph/releases/)
 
-Finally, you can install from the [golang package repository](https://pkg.go.dev/github.com/CMEPW/myph) like so:
+Finally, you can install from the [golang package repository](https://pkg.go.dev/github.com/mato7sh/myph) like so:
 ```bash
 # /!\ lowercase is important /!\
 go install github.com/cmepw/myph@latest
@@ -82,7 +82,7 @@ Flags:
   -p, --process string            target process to inject shellcode to (default "cmd.exe")
   -s, --shellcode string          shellcode path (default "msf.raw")
       --sleep-time uint           sleep time in seconds before executing loader (default: 0)
-  -t, --technique string          shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, NtCreateThreadEx, Syscall, SyscallTest, Etwp) (default "CRT")
+  -t, --technique string          shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, NtCreateThreadEx, Syscall, Etwp) (default "CRT")
       --use-api-hashing           Use API Hashing
   -v, --version                   version for myph
 
@@ -102,7 +102,7 @@ This tool supports few methods for now, but aims to add more as time goes on:
 - EtwpCreateEtwThread
 - CreateRemoteThreadEx
 
-If you don't know what that is about, go check out [this repository](https://github.com/CMEPW/BypassAV) :)~
+If you don't know what that is about, go check out [this repository](https://github.com/matro7sh/BypassAV) :)~
 
 
 #### Example run

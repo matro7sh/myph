@@ -84,11 +84,11 @@ func (e *technique) String() string {
 // Set must have pointer receiver so it doesn't change the value of a copy
 func (e *technique) Set(v string) error {
 	switch v {
-	case "CreateThread", "CRT", "ProcessHollowing", "Syscall", "CreateFiber", "CRTx", "Etwp", "SyscallTest", "NtCNtCreateThreadEx", "EnEnumCalendarInfoA":
+	case "CreateThread", "CRT", "ProcessHollowing", "Syscall", "CreateFiber", "CRTx", "Etwp", "NtCreateThreadEx", "EnEnumCalendarInfoA":
 		*e = technique(v)
 		return nil
 	default:
-		return errors.New("must be one of \"CRT\", \"CRTx\", \"Syscall\", \"SyscallTest\" \"CreateFiber\",  \"EnumCalendarInfoA\", \"Etwp\", \"ProcessHollowing\" or \"CreateThread\"\n\n")
+		return errors.New("must be one of \"CRT\", \"CRTx\", \"Syscall\", \"CreateFiber\", \"NTCreateThreadEx\",  \"EnumCalendarInfoA\", \"Etwp\", \"ProcessHollowing\" or \"CreateThread\"\n\n")
 	}
 }
 

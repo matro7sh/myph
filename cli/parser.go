@@ -125,10 +125,6 @@ func GetParser(opts *Options) *cobra.Command {
 		Long:               ASCII_ART,
 		Run: func(cmd *cobra.Command, args []string) {
 
-			/*
-			   TODO(djnn): refactor all this shit
-			*/
-
 			/* obligatory skid ascii art */
 			fmt.Printf("%s\n\n", ASCII_ART)
 
@@ -146,7 +142,7 @@ func GetParser(opts *Options) *cobra.Command {
 				os.Exit(1)
 			}
 
-			/* i got 99 problems but generating a random key aint one */
+			/* generating a random key if none are selected */
 			if opts.Key == "" {
 				opts.Key = tools.RandomString(32)
 			}
@@ -222,6 +218,7 @@ func GetParser(opts *Options) *cobra.Command {
 				panic(err)
 			}
 
+			/* FIXME(djnn): this should not work like this but instead have a flag and an array of techniques like the rest */
 			persistData := ""
 			if opts.Persistence != "" {
 				persistData = fmt.Sprintf(`persistExecute("%s")`, opts.Persistence)
