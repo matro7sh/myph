@@ -27,3 +27,5 @@ scripts/hash
 # Go workspace file
 go.work
 *.raw
+
+dist/

