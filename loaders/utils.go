@@ -1,13 +1,13 @@
 package loaders
 
 func InformExpermimental() {
-	println("\tThis feature is still in an an experimental stage.")
+    println("[!] The API hashing feature is still in an an experimental stage!!")
 }
 
 func InformProcessUnused(process string) {
 	_ = process
 
-	println("\n\n[!] PLEASE NOTE:\n\tshellcode will not be injected into new process with this method")
+	println("[!] PLEASE NOTE:\n\tshellcode will not be injected into new process with this method.")
 }
 
 type Templater interface {
@@ -32,6 +32,10 @@ func SelectTemplate(templateName string, useApiHashing bool, apiHashTechnique st
 		"Etwp":              ETWPTemplate{},
 		"NtCreateThreadEx":  NtCreateThreadExTemplate{UseApiHashing: useApiHashing, HashMethod: apiHashTechnique},
 	}
+
+    if useApiHashing {
+        InformExpermimental()
+    }
 
 	template, exist := methodes[templateName]
 	if exist {

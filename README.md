@@ -39,33 +39,6 @@ go install github.com/cmepw/myph@latest
 ### Usage
 
 ```
-
-              ...                                        -==[ M Y P H ]==-
-             ;::::;
-           ;::::; :;                                    In loving memory of
-         ;:::::'   :;                               Wassyl Iaroslavovytch Slipak
-        ;:::::;     ;.
-       ,:::::'       ;           OOO                       (1974 - 2016)
-       ::::::;       ;          OOOOO
-       ;:::::;       ;         OOOOOOOO
-      ,;::::::;     ;'         / OOOOOOO
-    ;::::::::: . ,,,;.        /  / DOOOOOO
-  .';:::::::::::::::::;,     /  /     DOOOO
- ,::::::;::::::;;;;::::;,   /  /        DOOO        AV / EDR evasion framework
-; :::::: '::::::;;;::::: ,#/  /          DOOO           to pop shells and
-: ::::::: ;::::::;;::: ;::#  /            DOOO        make the blue team cry
-:: ::::::: ;:::::::: ;::::# /              DOO
- : ::::::: ;:::::: ;::::::#/               DOO
- ::: ::::::: ;; ;:::::::::##                OO       written with <3 by djnn
- :::: ::::::: ;::::::::;:::#                OO                ------
- ::::: ::::::::::::;' :;::#                O             https://djnn.sh
-   ::::: ::::::::;  /  /  :#
-   :::::: :::::;   /  /    #
-
-Usage:
-  myph [flags]
-  myph [command]
-
 Available Commands:
   completion  Generate the autocompletion script for the specified shell
   help        Help about any command
@@ -82,11 +55,9 @@ Flags:
   -p, --process string            target process to inject shellcode to (default "cmd.exe")
   -s, --shellcode string          shellcode path (default "msf.raw")
       --sleep-time uint           sleep time in seconds before executing loader (default: 0)
-  -t, --technique string          shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, NtCreateThreadEx, Syscall, Etwp) (default "CRT")
+  -t, --technique string          shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, NtCreateThreadEx, Syscall, SyscallTest, Etwp) (default "CRT")
       --use-api-hashing           Use API Hashing
   -v, --version                   version for myph
-
-Use "myph [command] --help" for more information about a command.
 ```
 
 #### Loader Methods
