@@ -18,8 +18,11 @@ func GetDefaultCLIOptions() Options {
 		SleepTime:       0,
 		PEFilePath:      "payload.exe",
 		VersionFilePath: "goversion.json",
+		WithDebug:       false,
 		BuildType:       "exe",
 		Persistence:     "",
+		UseAPIHashing:   false,
+		APIHashingType:  "DJB2",
 	}
 
 	return opts

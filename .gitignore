@@ -12,6 +12,9 @@
 myph
 myph-out/
 
+scripts/hash_function
+scripts/hash
+
 # Test binary, built with `go test -c`
 *.test
 

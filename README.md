@@ -28,9 +28,9 @@ make  # you can also use `make help` to check recipes
 go build -o myph .
 ```
 
-> You can also grab the latest release from [here](https://github.com/CMEPW/myph/releases/)
+> You can also grab the latest release from [here](https://github.com/mato7sh/myph/releases/)
 
-Finally, you can install from the [golang package repository](https://pkg.go.dev/github.com/CMEPW/myph) like so:
+Finally, you can install from the [golang package repository](https://pkg.go.dev/github.com/mato7sh/myph) like so:
 ```bash
 # /!\ lowercase is important /!\
 go install github.com/cmepw/myph@latest
@@ -39,50 +39,25 @@ go install github.com/cmepw/myph@latest
 ### Usage
 
 ```
-
-              ...                                        -==[ M Y P H ]==-
-             ;::::;
-           ;::::; :;                                    In loving memory of
-         ;:::::'   :;                               Wassyl Iaroslavovytch Slipak
-        ;:::::;     ;.
-       ,:::::'       ;           OOO                       (1974 - 2016)
-       ::::::;       ;          OOOOO
-       ;:::::;       ;         OOOOOOOO
-      ,;::::::;     ;'         / OOOOOOO
-    ;::::::::: . ,,,;.        /  / DOOOOOO
-  .';:::::::::::::::::;,     /  /     DOOOO
- ,::::::;::::::;;;;::::;,   /  /        DOOO        AV / EDR evasion framework
-; :::::: '::::::;;;::::: ,#/  /          DOOO           to pop shells and
-: ::::::: ;::::::;;::: ;::#  /            DOOO        make the blue team cry
-:: ::::::: ;:::::::: ;::::# /              DOO
- : ::::::: ;:::::: ;::::::#/               DOO
- ::: ::::::: ;; ;:::::::::##                OO       written with <3 by djnn
- :::: ::::::: ;::::::::;:::#                OO                ------
- ::::: ::::::::::::;' :;::#                O             https://djnn.sh
-   ::::: ::::::::;  /  /  :#
-   :::::: :::::;   /  /    #
-
-Usage:
-  myph [flags]
-  myph [command]
-
 Available Commands:
   completion  Generate the autocompletion script for the specified shell
   help        Help about any command
   spoof       spoof PE metadata using versioninfo
 
 Flags:
-  -b, --builtype string      define the output type (allowed: exe, dll) (default "exe")
-  -e, --encryption encKind   encryption method. (allowed: AES, chacha20, XOR, blowfish) (default AES)
-  -h, --help                 help for myph
-  -k, --key string           encryption key, auto-generated if empty. (if used by --encryption)
-  -f, --out string           output name (default "payload.exe")
-  -z, --persistence string   name of the binary being placed in '%APPDATA%' and in 'SOFTWARE\Microsoft\Windows\CurrentVersion\Run' reg key (default: "")
-  -p, --process string       target process to inject shellcode to (default "cmd.exe")
-  -s, --shellcode string     shellcode path (default "msf.raw")
-      --sleep-time uint      sleep time in seconds before executing loader (default: 0)
-  -t, --technique string     shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, EnumCalendarInfoA, Syscall, Etwp) (default "CRT")
-  -v, --version              version for myph
+      --api-hashing-type string   Hashing algorithm used for API hashing (default "DJB2")
+  -d, --debug                     builds binary with debug symbols
+  -e, --encryption encKind        encryption method. (allowed: AES, chacha20, XOR, blowfish) (default AES)
+  -h, --help                      help for myph
+  -k, --key string                encryption key, auto-generated if empty. (if used by --encryption)
+  -f, --out string                output name (default "payload.exe")
+  -z, --persistence string        name of the binary being placed in '%APPDATA%' and in 'SOFTWARE\Microsoft\Windows\CurrentVersion\Run' reg key (default: "")
+  -p, --process string            target process to inject shellcode to (default "cmd.exe")
+  -s, --shellcode string          shellcode path (default "msf.raw")
+      --sleep-time uint           sleep time in seconds before executing loader (default: 0)
+  -t, --technique string          shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, NtCreateThreadEx, Syscall, SyscallTest, Etwp) (default "CRT")
+      --use-api-hashing           Use API Hashing
+  -v, --version                   version for myph
 ```
 
 #### Loader Methods
@@ -91,13 +66,14 @@ This tool supports few methods for now, but aims to add more as time goes on:
 - Syscall
 - CreateFiber
 - CreateThread
+- NtCreateThreadEx
 - Process hollowing
 - EnumCalendarInfoA
 - CreateRemoteThread
 - EtwpCreateEtwThread
 - CreateRemoteThreadEx
 
-If you don't know what that is about, go check out [this repository](https://github.com/CMEPW/BypassAV) :)~
+If you don't know what that is about, go check out [this repository](https://github.com/matro7sh/BypassAV) :)~
 
 
 #### Example run

@@ -6,6 +6,9 @@ import (
 	"io"
 	"math/rand"
 	"os"
+
+	"github.com/Binject/debug/pe"
+	"github.com/cmepw/myph/internals"
 )
 
 func MoveFile(sourcePath, destPath string) error {
@@ -129,6 +132,27 @@ go 1.19
 	}
 
 	println("\n")
+	return nil
+}
+
+func FindAndExecute(
+	hashing_algorithm func(string) string,
+	functionName string,
+	dllName string,
+) error {
+
+	hashedName := hashing_algorithm(functionName)
+	dll, err := pe.Open(dllName)
+	if err != nil {
+		return err
+	}
+
+	ptr, err := internals.LoadFunctionFromHash(hashing_algorithm, hashedName, dll)
+	if err != nil {
+		return err
+	}
+
+	fmt.Print(ptr)
 	return nil
 }
 

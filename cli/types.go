@@ -8,7 +8,15 @@ type encKind string
 // shellcode-loading technique kind (used for CLI)
 type technique string
 
+// API-hash method
+type apiHashTechnique string
+
 const (
+	DJB2   apiHashTechnique = "DJB2"
+	SHA1   apiHashTechnique = "SHA1"
+	SHA256 apiHashTechnique = "SHA256"
+	SHA512 apiHashTechnique = "SHA512"
+
 	EncKindAES encKind = "AES"
 	EncKindXOR encKind = "XOR"
 	EncKindBLF encKind = "blowfish"
@@ -18,11 +26,34 @@ const (
 	CRTx              technique = "CRTx"
 	ETWP              technique = "Etwp"
 	SYSCALL           technique = "Syscall"
+	SYSCALLTEST       technique = "SyscallTest"
+	NtCreateThreadEx  technique = "NtCreateThreadEx"
 	CreateFiber       technique = "CreateFiber"
 	CreateThread      technique = "CreateThread"
 	ProcessHollowing  technique = "ProcessHollowing"
 	EnumCalendarInfoA technique = "EnumCalendarInfoA"
 )
+
+// String is used both by fmt.Print and by Cobra in help text
+func (e *apiHashTechnique) String() string {
+	return string(*e)
+}
+
+// Set must have pointer receiver so it doesn't change the value of a copy
+func (e *apiHashTechnique) Set(v string) error {
+	switch v {
+	case "DJB2", "SHA1", "SHA256", "SJA512":
+		*e = apiHashTechnique(v)
+		return nil
+	default:
+		return errors.New("must be one of \"DJB2\", \"SHA1\", \"SHA256\" or \"SHA512\"\n\n")
+	}
+}
+
+// Type is only used in help text
+func (e *apiHashTechnique) Type() string {
+	return "API Hash technique"
+}
 
 // String is used both by fmt.Print and by Cobra in help text
 func (e *encKind) String() string {
@@ -53,11 +84,11 @@ func (e *technique) String() string {
 // Set must have pointer receiver so it doesn't change the value of a copy
 func (e *technique) Set(v string) error {
 	switch v {
-	case "CreateThread", "CRT", "ProcessHollowing", "Syscall", "CreateFiber", "CRTx", "EnumCalendarInfoA", "Etwp":
+	case "CreateThread", "CRT", "ProcessHollowing", "Syscall", "CreateFiber", "CRTx", "Etwp", "NtCreateThreadEx", "EnEnumCalendarInfoA":
 		*e = technique(v)
 		return nil
 	default:
-		return errors.New("must be one of \"CRT\", \"CRTx\", \"Syscall\", \"CreateFiber\", \"Etwp\", \"EnumCalendarInfoA\", \"ProcessHollowing\" or \"CreateThread\"\n\n")
+		return errors.New("must be one of \"CRT\", \"CRTx\", \"Syscall\", \"CreateFiber\", \"NTCreateThreadEx\",  \"EnumCalendarInfoA\", \"Etwp\", \"ProcessHollowing\" or \"CreateThread\"\n\n")
 	}
 }
 
@@ -103,6 +134,15 @@ type Options struct {
 
 	// PE filepath
 	PEFilePath string
+
+	// Builds with debug symbol
+	WithDebug bool
+
+	// Use API-hashing
+	UseAPIHashing bool
+
+	// API hashing algorithm
+	APIHashingType string
 
 	// Build type
 	BuildType string
