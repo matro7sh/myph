@@ -56,3 +56,7 @@ clean: ## clean up the project directory
 .PHONY: docker
 docker: ## build a local docker image
 	@docker build . -t $(APP_NAME):latest -t $(APP_NAME):$(APP_VERSION)
+
+.PHONY: release-build
+release-build: ## makes a release build locally on the current commit
+	@goreleaser release --skip=publish --snapshot
