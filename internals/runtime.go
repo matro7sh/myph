@@ -29,7 +29,7 @@ func rva2offset(pe *pe.File, rva uint32) uint32 {
 	return rva
 }
 
-func HashedSyscall(callid uint16, argh ...uintptr) uintptr {
+func HashedCall(callid uint16, argh ...uintptr) uintptr {
 	rvalue := runSyscall(callid, argh...)
 	return uintptr(rvalue)
 }

