@@ -2,12 +2,22 @@ package loaders
 
 func InformExpermimental() {
 	println("[!] The API hashing feature is still in an an experimental stage!!")
+	println("Only a few methods are supported for now:")
+	println("\t-Syscall\n\t-CreateThread\n\t-tNtCreateThreadEx\n")
 }
 
 func InformProcessUnused(process string) {
 	_ = process
 
 	println("[!] PLEASE NOTE:\n\tshellcode will not be injected into new process with this method.")
+}
+
+func DownloadMyphInternals(path string) error {
+
+	println("[!] While internals module is not published, we will manually copy it.")
+	println("Please ensure (temporarily) that you use myph from its root repository.")
+
+	return nil
 }
 
 type Templater interface {
@@ -25,7 +35,7 @@ func SelectTemplate(templateName string, useApiHashing bool, apiHashTechnique st
 		"Syscall":           SysTemplate{UseApiHashing: useApiHashing, HashMethod: apiHashTechnique},
 		"CRT":               CRTTemplate{},
 		"CRTx":              CRTxTemplate{},
-		"CreateThread":      CreateTTemplate{},
+		"CreateThread":      CreateTTemplate{UseApiHashing: useApiHashing, HashMethod: apiHashTechnique},
 		"ProcessHollowing":  ProcHollowTemplate{},
 		"EnumCalendarInfoA": EnumCalendarTemplate{},
 		"CreateFiber":       CreateFiberTemplate{},
