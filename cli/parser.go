@@ -71,7 +71,7 @@ func BuildLoader(opts *Options) *exec.Cmd {
 
 func GetParser(opts *Options) *cobra.Command {
 
-	version := "1.2.2"
+	version := "1.2.3"
 	var spoofMetadata = &cobra.Command{
 		Use:                "spoof",
 		Version:            version,
