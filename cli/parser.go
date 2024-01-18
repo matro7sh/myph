@@ -143,6 +143,20 @@ func GetParser(opts *Options) *cobra.Command {
 				os.Exit(1)
 			}
 
+			if opts.UseAPIHashing {
+                fmt.Printf("[+] Retrieving dependencies to use API Hashing...\n")
+
+				execGoGetCmd := exec.Command("go", "get", "github.com/Binject/debug/pe")
+				execGoGetCmd.Dir = MYPH_TMP_DIR
+				_, _ = execGoGetCmd.Output()
+
+                // this should stay to cmepw addr
+                execGoGetCmd = exec.Command("go", "get", "github.com/cmepw/myph/internals")
+				execGoGetCmd.Dir = MYPH_TMP_DIR
+				_, _ = execGoGetCmd.Output()
+
+			}
+
 			/* reading the shellcode as a series of bytes */
 			shellcode, err := tools.ReadFile(opts.ShellcodePath)
 			if err != nil {
@@ -274,11 +288,6 @@ func GetParser(opts *Options) *cobra.Command {
 
 			fmt.Printf("\n[+] Template (%s) written to tmp directory. Compiling...\n", opts.Technique)
 
-			if opts.UseAPIHashing {
-				execGoGetCmd := exec.Command("go", "get", "github.com/Binject/debug/pe")
-				execGoGetCmd.Dir = MYPH_TMP_DIR
-				_, _ = execGoGetCmd.Output()
-			}
 
 			execCmd := BuildLoader(opts)
 			execCmd.Dir = MYPH_TMP_DIR
