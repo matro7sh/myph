@@ -144,16 +144,28 @@ func GetParser(opts *Options) *cobra.Command {
 			}
 
 			if opts.UseAPIHashing {
-                fmt.Printf("[+] Retrieving dependencies to use API Hashing...\n")
+				fmt.Printf("[+] Retrieving dependencies to use API Hashing...\n")
 
 				execGoGetCmd := exec.Command("go", "get", "github.com/Binject/debug/pe")
 				execGoGetCmd.Dir = MYPH_TMP_DIR
 				_, _ = execGoGetCmd.Output()
 
-                // this should stay to cmepw addr
-                execGoGetCmd = exec.Command("go", "get", "github.com/cmepw/myph/internals")
-				execGoGetCmd.Dir = MYPH_TMP_DIR
-				_, _ = execGoGetCmd.Output()
+				if opts.WithDebug {
+					// if running debug, we want to have the local internals because
+					// it makes development easier
+
+					fmt.Printf("[+] Running \"cp -r ./internals /tmp/myph-out\"\n")
+
+					execGoGetCmd = exec.Command("cp", "-r", "./internals", MYPH_TMP_DIR)
+					execGoGetCmd.Dir = "."
+					_, _ = execGoGetCmd.Output()
+
+				} else {
+					// this should stay to cmepw addr
+					execGoGetCmd = exec.Command("go", "get", "github.com/cmepw/myph/internals")
+					execGoGetCmd.Dir = MYPH_TMP_DIR
+					_, _ = execGoGetCmd.Output()
+				}
 
 			}
 
@@ -287,7 +299,6 @@ func GetParser(opts *Options) *cobra.Command {
 			}
 
 			fmt.Printf("\n[+] Template (%s) written to tmp directory. Compiling...\n", opts.Technique)
-
 
 			execCmd := BuildLoader(opts)
 			execCmd.Dir = MYPH_TMP_DIR
