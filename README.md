@@ -12,6 +12,9 @@ for general information and testing. The tool and this repository are carefully 
 However, the developers cannot be held liable for for any damage, direct or indirect, of whatever nature as a result of
 or related to the access to or use of the software.
 
+> IOCs have voluntarily been added to the project. Don't open any issues regarding detections, it's pointless.
+> The goal of this project is to learn & teach. If you want a FUD loader, dont be a baby and make your own.
+
 ## How to use the software ?
 
 > Please note this project is under development & subject to changes.

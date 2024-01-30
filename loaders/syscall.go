@@ -36,7 +36,18 @@ import (
 }
 
 func (t SysTemplate) Const() string {
-	// same consts with or without API Hashing
+
+	if t.UseApiHashing {
+		return fmt.Sprintf(`
+const (
+	MEM_COMMIT = 0x1000
+	MEM_RESERVE = 0x2000
+	PAGE_EXECUTE_READ = 0x20
+	PAGE_READWRITE = 0x04
+)
+`)
+
+	}
 
 	return fmt.Sprintf(`
 const (
@@ -45,23 +56,21 @@ const (
 	PAGE_EXECUTE_READ = 0x20
 	PAGE_READWRITE = 0x04
 )
+
+var (
+    kernel32 = syscall.MustLoadDLL("kernel32.dll")
+	ntdll = syscall.MustLoadDLL("ntdll.dll")
+
+	VirtualAlloc = kernel32.MustFindProc("VirtualAlloc")
+	VirtualProtect = kernel32.MustFindProc("VirtualProtect")
+	RtlCopyMemory = ntdll.MustFindProc("RtlCopyMemory")
+)
+
 `)
 }
 
 func (t SysTemplate) Init() string {
-
-	if t.UseApiHashing {
-		return fmt.Sprintf("\n")
-	}
-
-	return fmt.Sprintf(`
-	kernel32 := syscall.MustLoadDLL("kernel32.dll")
-	ntdll := syscall.MustLoadDLL("ntdll.dll")
-
-	VirtualAlloc := kernel32.MustFindProc("VirtualAlloc")
-	VirtualProtect := kernel32.MustFindProc("VirtualProtect")
-	RtlCopyMemory := ntdll.MustFindProc("RtlCopyMemory")
-`)
+	return fmt.Sprintf("\n")
 }
 
 func (t SysTemplate) Process() string {

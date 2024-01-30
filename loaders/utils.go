@@ -3,7 +3,7 @@ package loaders
 func InformExpermimental() {
 	println("[!] The API hashing feature is still in an an experimental stage!!")
 	println("Only a few methods are supported for now:")
-	println("\t-Syscall\n\t-CreateThread\n\t-tNtCreateThreadEx\n")
+	println("\t-Syscall\n\t-CreateThread\n\t-NtCreateThreadEx\n")
 }
 
 func InformProcessUnused(process string) {

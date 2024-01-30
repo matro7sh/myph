@@ -71,7 +71,7 @@ func BuildLoader(opts *Options) *exec.Cmd {
 
 func GetParser(opts *Options) *cobra.Command {
 
-	version := "1.2.2"
+	version := "1.2.3"
 	var spoofMetadata = &cobra.Command{
 		Use:                "spoof",
 		Version:            version,
@@ -141,6 +141,32 @@ func GetParser(opts *Options) *cobra.Command {
 			if err != nil {
 				fmt.Printf("[!] Error generating project root: %s\n", err)
 				os.Exit(1)
+			}
+
+			if opts.UseAPIHashing {
+				fmt.Printf("[+] Retrieving dependencies to use API Hashing...\n")
+
+				execGoGetCmd := exec.Command("go", "get", "github.com/Binject/debug/pe")
+				execGoGetCmd.Dir = MYPH_TMP_DIR
+				_, _ = execGoGetCmd.Output()
+
+				if opts.WithDebug {
+					// if running debug, we want to have the local internals because
+					// it makes development easier
+
+					fmt.Printf("[+] Running \"cp -r ./internals /tmp/myph-out\"\n")
+
+					execGoGetCmd = exec.Command("cp", "-r", "./internals", MYPH_TMP_DIR)
+					execGoGetCmd.Dir = "."
+					_, _ = execGoGetCmd.Output()
+
+				} else {
+					// this should stay to cmepw addr
+					execGoGetCmd = exec.Command("go", "get", "github.com/cmepw/myph/internals")
+					execGoGetCmd.Dir = MYPH_TMP_DIR
+					_, _ = execGoGetCmd.Output()
+				}
+
 			}
 
 			/* reading the shellcode as a series of bytes */
@@ -273,12 +299,6 @@ func GetParser(opts *Options) *cobra.Command {
 			}
 
 			fmt.Printf("\n[+] Template (%s) written to tmp directory. Compiling...\n", opts.Technique)
-
-			if opts.UseAPIHashing {
-				execGoGetCmd := exec.Command("go", "get", "github.com/Binject/debug/pe")
-				execGoGetCmd.Dir = MYPH_TMP_DIR
-				_, _ = execGoGetCmd.Output()
-			}
 
 			execCmd := BuildLoader(opts)
 			execCmd.Dir = MYPH_TMP_DIR

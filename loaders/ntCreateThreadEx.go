@@ -29,6 +29,8 @@ import (
 
 	return fmt.Sprintf(`
 import (
+    "fmt"
+    "log"
 	"syscall"
 	"unsafe"
 )
@@ -38,30 +40,40 @@ import (
 func (t NtCreateThreadExTemplate) Const() string {
 	// same consts with or without API Hashing
 
-	return fmt.Sprintf(`
-const (
-	MEM_COMMIT = 0x1000
-	MEM_RESERVE = 0x2000
-	PAGE_EXECUTE_READ = 0x20
-	PAGE_READWRITE = 0x04
-)
-`)
-}
-
-func (t NtCreateThreadExTemplate) Init() string {
-
 	if t.UseApiHashing {
-		return fmt.Sprintf("\n")
+		return fmt.Sprintf(`
+        const (
+            MEM_COMMIT = 0x1000
+            MEM_RESERVE = 0x2000
+            PAGE_EXECUTE_READ = 0x20
+            PAGE_READWRITE = 0x04
+        )
+        `)
 	}
 
 	return fmt.Sprintf(`
-	ntdll := syscall.MustLoadDLL("ntdll.dll")
+    const (
+            MEM_COMMIT = 0x1000
+            MEM_RESERVE = 0x2000
+            PAGE_EXECUTE_READ = 0x20
+            PAGE_READWRITE = 0x04
+        )
 
-    NtAllocateVirtualMemory = ntdll.MustFindProd("NtAllocateVirtualMemory")
-    NtWriteVirtualMemory = ntdll.MustFindProd("NtWriteVirtualMemory")
-    NtProtectVirtualMemory = ntdll.MustFindProd("NtProtectVirtualMemory")
-    NtCreateThreadEx = ntdll.MustFindProd("NtCreateThreadEx")
+    var (
+
+	ntdll = syscall.MustLoadDLL("ntdll.dll")
+
+    NtAllocateVirtualMemory = ntdll.MustFindProc("NtAllocateVirtualMemory")
+    NtWriteVirtualMemory = ntdll.MustFindProc("NtWriteVirtualMemory")
+    NtProtectVirtualMemory = ntdll.MustFindProc("NtProtectVirtualMemory")
+    NtCreateThreadEx = ntdll.MustFindProc("NtCreateThreadEx")
+    )
 `)
+
+}
+
+func (t NtCreateThreadExTemplate) Init() string {
+	return fmt.Sprintf("\n")
 }
 
 func (t NtCreateThreadExTemplate) Process() string {

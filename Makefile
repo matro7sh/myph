@@ -2,7 +2,7 @@
 # -------------------
 
 APP_NAME = myph
-APP_VERSION = 1.2.2
+APP_VERSION = 1.2.3
 GIT_REVISION = `git rev-parse HEAD`
 DOCKER_IMAGE_TAG ?= $(APP_VERSION)
 DOCKER_LOCAL_IMAGE = $(APP_NAME):$(DOCKER_IMAGE_TAG)
@@ -56,3 +56,7 @@ clean: ## clean up the project directory
 .PHONY: docker
 docker: ## build a local docker image
 	@docker build . -t $(APP_NAME):latest -t $(APP_NAME):$(APP_VERSION)
+
+.PHONY: release-build
+release-build: ## makes a release build locally on the current commit
+	@goreleaser release --skip=publish --snapshot
