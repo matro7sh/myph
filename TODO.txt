@@ -5,6 +5,8 @@
 Misc:
     - support for loading API calls from PEB
     - Decrypt shellcode at the last possible time & split templates into trigger & prepare-payload functions
+    - Rework persistence module
+    - Only use NtAPI
 
 
 #############################

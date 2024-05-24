@@ -40,6 +40,7 @@ func SelectTemplate(templateName string, useApiHashing bool, apiHashTechnique st
 		"EnumCalendarInfoA": EnumCalendarTemplate{},
 		"CreateFiber":       CreateFiberTemplate{},
 		"Etwp":              ETWPTemplate{},
+		"EnumTreeW":         EnumTreeW{},
 		"NtCreateThreadEx":  NtCreateThreadExTemplate{UseApiHashing: useApiHashing, HashMethod: apiHashTechnique},
 	}
 
