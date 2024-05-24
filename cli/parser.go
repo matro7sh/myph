@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 
 	"github.com/cmepw/myph/loaders"
 	"github.com/cmepw/myph/rc"
@@ -13,8 +14,8 @@ import (
 	"github.com/tc-hib/winres"
 )
 
-const MYPH_TMP_DIR = "/tmp/myph-out"
-const MYPH_TMP_WITH_PAYLOAD = "/tmp/myph-out/payload."
+var MYPH_TMP_DIR = "/tmp/myph-out"
+var MYPH_TMP_WITH_PAYLOAD = "/tmp/myph-out/payload."
 
 const ASCII_ART = `
               ...                                        -==[ M Y P H ]==-
@@ -43,11 +44,27 @@ const ASCII_ART = `
     `
 
 func BuildLoader(opts *Options) *exec.Cmd {
-	os.Setenv("GOOS", opts.OS)
-	os.Setenv("GOARCH", opts.Arch)
+	err := os.Setenv("GOOS", opts.OS)
+	if err != nil {
+		panic(err)
+	}
+
+	err = os.Setenv("GOARCH", opts.Arch)
+	if err != nil {
+		panic(err)
+	}
+
 	if opts.BuildType == "dll" {
-		os.Setenv("CGO_ENABLED", "1")
-		os.Setenv("CC", "x86_64-w64-mingw32-gcc")
+		err = os.Setenv("CGO_ENABLED", "1")
+		if err != nil {
+			panic(err)
+		}
+
+		err = os.Setenv("CC", "x86_64-w64-mingw32-gcc")
+		if err != nil {
+			panic(err)
+		}
+
 		fmt.Println("[*] Compiling payload as dll...")
 
 		if opts.WithDebug {
@@ -71,7 +88,7 @@ func BuildLoader(opts *Options) *exec.Cmd {
 
 func GetParser(opts *Options) *cobra.Command {
 
-	version := "1.2.3"
+	version := "1.2.4"
 	var spoofMetadata = &cobra.Command{
 		Use:                "spoof",
 		Version:            version,
@@ -83,11 +100,23 @@ func GetParser(opts *Options) *cobra.Command {
 			/* obligatory skid ascii art */
 			fmt.Printf("%s\n\n", ASCII_ART)
 
+			/* set different TMP paths for Windows than Linux & MacOS */
+			if runtime.GOOS == "windows" {
+				MYPH_TMP_DIR = GetTempPath()
+				MYPH_TMP_WITH_PAYLOAD = GetTempPath() + "\\payload."
+			}
+
 			exe, err := os.Open(opts.PEFilePath)
 			if err != nil {
 				panic(err)
 			}
-			defer exe.Close()
+			defer func(exe *os.File) {
+				err := exe.Close()
+				if err != nil {
+					fmt.Printf("[!] Error closing exe file: %s\n", err)
+					os.Exit(1)
+				}
+			}(exe)
 
 			rs, err := winres.LoadFromEXE(exe)
 			if err != nil {
@@ -106,7 +135,13 @@ func GetParser(opts *Options) *cobra.Command {
 			if err != nil {
 				panic(err)
 			}
-			defer out.Close()
+			defer func(out *os.File) {
+				err := out.Close()
+				if err != nil {
+					fmt.Printf("[!] Error closing out file: %s\n", err)
+					os.Exit(1)
+				}
+			}(out)
 
 			err = rs.WriteToEXE(out, exe, winres.WithAuthenticode(winres.IgnoreSignature))
 			if err != nil {
@@ -115,11 +150,17 @@ func GetParser(opts *Options) *cobra.Command {
 
 			fmt.Printf("[+] New metadata is set !\n")
 
-			exe.Close()
-			out.Close()
+			err = os.Remove(opts.PEFilePath)
+			if err != nil {
+				fmt.Printf("[!] Error removing PE file: %s\n", err)
+				os.Exit(1)
+			}
 
-			os.Remove(opts.PEFilePath)
-			tools.MoveFile(tmpPath, opts.PEFilePath)
+			err = tools.MoveFile(tmpPath, opts.PEFilePath)
+			if err != nil {
+				fmt.Printf("[!] Error moving PE file: %s\n", err)
+				os.Exit(1)
+			}
 
 			fmt.Printf("[+] Done !\n")
 		},
@@ -135,6 +176,12 @@ func GetParser(opts *Options) *cobra.Command {
 
 			/* obligatory skid ascii art */
 			fmt.Printf("%s\n\n", ASCII_ART)
+
+			/* set different TMP paths for Windows than Linux & MacOS */
+			if runtime.GOOS == "windows" {
+				MYPH_TMP_DIR = GetTempPath()
+				MYPH_TMP_WITH_PAYLOAD = GetTempPath() + "\\payload."
+			}
 
 			/* later, we will call "go build" on a golang project, so we need to set up the project tree */
 			err := tools.CreateTmpProjectRoot(MYPH_TMP_DIR, opts.Persistence)
@@ -197,7 +244,7 @@ func GetParser(opts *Options) *cobra.Command {
 			   - write to go.mod the required dependencies
 			*/
 
-			var encrypted = []byte{}
+			var encrypted []byte
 			var template = ""
 
 			switch opts.Encryption {
@@ -330,8 +377,16 @@ func GetParser(opts *Options) *cobra.Command {
 			if opts.BuildType == "dll" {
 				format = "dll"
 			}
-			tools.MoveFile(MYPH_TMP_WITH_PAYLOAD+format, opts.OutName+"."+format)
-			os.RemoveAll(MYPH_TMP_DIR)
+
+			err = tools.MoveFile(MYPH_TMP_WITH_PAYLOAD+format, opts.OutName+"."+format)
+			if err != nil {
+				fmt.Printf("[!] Could not copy final PE file: %s\n", err)
+				os.Exit(1)
+			}
+			err = os.RemoveAll(MYPH_TMP_DIR)
+			if err != nil {
+				fmt.Printf("[Warn] Could not remove temp directory: %s\n", err)
+			}
 
 			fmt.Printf("[+] Done! Compiled payload: %s\n", opts.OutName)
 		},
@@ -351,6 +406,7 @@ func GetParser(opts *Options) *cobra.Command {
 	rootCmd.Flags().UintVarP(&opts.SleepTime, "sleep-time", "", defaults.SleepTime, "sleep time in seconds before executing loader (default: 0)")
 	rootCmd.Flags().BoolVarP(&opts.WithDebug, "debug", "d", false, "builds binary with debug symbols")
 	rootCmd.Flags().BoolVarP(&opts.UseAPIHashing, "use-api-hashing", "", false, "Use API Hashing")
+
 	// TODO(djnn): re-add this flag once supported
 	// rootCmd.Flags().StringVarP(&opts.APIHashingType, "api-hashing-type", "", "DJB2", "Hashing algorithm used for API hashing")
 	rootCmd.Flags().StringVarP(&opts.Persistence, "persistence", "z", defaults.Persistence, "name of the binary being placed in '%APPDATA%' and in 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run' reg key (default: \"\")")

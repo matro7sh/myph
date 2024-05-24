@@ -2,6 +2,10 @@ package cli
 
 import (
 	"crypto/rand"
+	"fmt"
+	"os/user"
+	"path/filepath"
+	"runtime"
 )
 
 // Get default value for Options struct
@@ -28,9 +32,27 @@ func GetDefaultCLIOptions() Options {
 	return opts
 }
 
-// Generate a random list of bytes
+// RandBytes generates a random list of bytes
 func RandBytes(length int) []byte {
 	b := make([]byte, length)
-	rand.Read(b)
+	_, err := rand.Read(b)
+	if err != nil {
+		return nil
+	}
 	return b
+}
+
+func GetTempPath() string {
+	if runtime.GOOS == "windows" {
+		userCtx, err := user.Current()
+		if err != nil {
+			fmt.Println("Error getting current user:", err)
+			return "nouser\\Temp\\myph"
+		}
+
+		tempDir := filepath.Join(userCtx.HomeDir, "AppData", "Local", "Temp", "myph")
+		return tempDir
+	}
+
+	return "/tmp/myph"
 }

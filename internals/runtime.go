@@ -20,9 +20,9 @@ import (
 
 func rva2offset(pe *pe.File, rva uint32) uint32 {
 	for _, hdr := range pe.Sections {
-		baseoffset := uint64(rva)
-		if baseoffset > uint64(hdr.VirtualAddress) &&
-			baseoffset < uint64(hdr.VirtualAddress+hdr.VirtualSize) {
+		baseOffset := uint64(rva)
+		if baseOffset > uint64(hdr.VirtualAddress) &&
+			baseOffset < uint64(hdr.VirtualAddress+hdr.VirtualSize) {
 			return rva - hdr.VirtualAddress + hdr.Offset
 		}
 	}
@@ -37,7 +37,7 @@ func HashedCall(callid uint16, argh ...uintptr) uintptr {
 func runSyscall(callid uint16, argh ...uintptr) (errcode uint32)
 
 func LoadFunctionFromHash(
-	hashing_algorithm func(string) string,
+	hashingAlgorithm func(string) string,
 	hashedName string,
 	dll *pe.File,
 ) (uint16, error) {
@@ -51,13 +51,13 @@ func LoadFunctionFromHash(
 	for _, x := range exports {
 
 		/* hash every export & compare against base hash */
-		if hashing_algorithm(x.Name) == hashedName {
+		if hashingAlgorithm(x.Name) == hashedName {
 
 			/* get in-memory offset from rva */
 			offset := rva2offset(dll, x.VirtualAddress)
 			dllBytes, err := dll.Bytes()
 			if err != nil {
-				return 0, errors.New("could not retrieve bytes from dll...")
+				return 0, errors.New("could not retrieve bytes from dll")
 			}
 
 			buff := dllBytes[offset : offset+10]
@@ -65,5 +65,5 @@ func LoadFunctionFromHash(
 			return sysId, nil
 		}
 	}
-	return 0, errors.New("Function not found")
+	return 0, errors.New("function not found")
 }
