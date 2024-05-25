@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/cmepw/myph/loaders"
 	"github.com/cmepw/myph/tools"
+	loadersv2 "github.com/cmepw/myph/v2/loaders"
 	"os"
 	"os/exec"
 	"strings"
@@ -298,10 +299,11 @@ func (e encKind) GetTemplate() string {
 }
 
 func (c CompilationProfile) GetExecutionTemplate() (string, error) {
-	var methods = map[technique]loaders.Templater{
-		SYSCALL: loaders.SysTemplate{
+	var methods = map[technique]loadersv2.Templater{
+		SYSCALL: loadersv2.SyscallTemplate{
 			UseApiHashing: c.APIHashingConfig.IsEnabled,
 			HashMethod:    string(c.APIHashingConfig.Technique),
+			FunctionNames: []string{"VirtualAlloc", "RltCopyMemory", "VirtualProtect"},
 		},
 		CreateThread: loaders.CreateTTemplate{
 			UseApiHashing: c.APIHashingConfig.IsEnabled,
@@ -320,7 +322,7 @@ func (c CompilationProfile) GetExecutionTemplate() (string, error) {
 	}
 
 	if c.APIHashingConfig.IsEnabled {
-		loaders.InformExperimental()
+		loadersv2.InformAPIHashingExperimental()
 	}
 
 	template, exist := methods[c.ShellcodeLoading.Technique]

@@ -90,6 +90,7 @@ func GetParser(opts *Options) *cobra.Command {
 			_, stderr := command.Output()
 			if stderr != nil {
 
+				/* debug message so that users can properly submit an error if any :)  */
 				commandStr := "go build -ldflags \"-s -w -H=windowsgui\" -o payload.exe"
 				if opts.CompileConfig.ArtefactType == PE_DLL {
 					commandStr = "CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc go build -buildmode=c-shared -ldflags \"-s -w -H=windowsgui\" -o payload.dll"
