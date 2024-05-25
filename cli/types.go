@@ -40,7 +40,7 @@ func (e *apiHashTechnique) String() string {
 	return string(*e)
 }
 
-// Set must have pointer receiver so it doesn't change the value of a copy
+// Set must have pointer receiver, so it doesn't change the value of a copy
 func (e *apiHashTechnique) Set(v string) error {
 	switch v {
 	case "DJB2", "SHA1", "SHA256", "SJA512":

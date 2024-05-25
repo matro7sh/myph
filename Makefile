@@ -2,7 +2,7 @@
 # -------------------
 
 APP_NAME = myph
-APP_VERSION = 1.2.4
+APP_VERSION = 2.0.0
 GIT_REVISION = `git rev-parse HEAD`
 DOCKER_IMAGE_TAG ?= $(APP_VERSION)
 DOCKER_LOCAL_IMAGE = $(APP_NAME):$(DOCKER_IMAGE_TAG)

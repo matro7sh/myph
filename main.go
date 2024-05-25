@@ -1,12 +1,15 @@
 package main
 
 import (
-	"github.com/cmepw/myph/cli"
+	"github.com/cmepw/myph/v2/cli"
 )
 
 func main() {
-	opts := cli.GetDefaultCLIOptions()
+	opts := cli.DefaultOptions()
 	parser := cli.GetParser(&opts)
 
-	parser.ExecuteC()
+	_, err := parser.ExecuteC()
+	if err != nil {
+		return
+	}
 }

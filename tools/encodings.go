@@ -28,7 +28,7 @@ func (e *BytesEncodingType) String() string {
 	return string(*e)
 }
 
-// / Set must have pointer receiver so it doesn't change the value of a copy
+// Set must have pointer receiver so it doesn't change the value of a copy
 func (e *BytesEncodingType) Set(v string) error {
 	switch v {
 	case "base64", "base32", "hex":
