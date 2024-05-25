@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/cmepw/myph/loaders"
 	"github.com/cmepw/myph/tools"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -384,4 +385,42 @@ __MAIN_STATEMENT__
 	template = strings.ReplaceAll(template, "__MAIN_STATEMENT__", mainStatement)
 
 	return ""
+}
+
+func (c CompilationProfile) GetCompileCommand(debugEnabled bool) *exec.Cmd {
+
+	exPath, err := os.Getwd()
+	exitIfError(err)
+
+	errGoos := os.Setenv("GOOS", string(c.OSTarget))
+	errGoarch := os.Setenv("GOARCH", string(c.ArchTarget))
+	exitIfError(errGoos)
+	exitIfError(errGoarch)
+
+	if c.ArtefactType == PE_DLL {
+		errCgo := os.Setenv("CGO_ENABLED", "1")
+		errCc := os.Setenv("CC", "x86_64-w64-mingw32-gcc")
+		exitIfError(errCc)
+		exitIfError(errCgo)
+
+		fmt.Println("[+] Compiling as dll")
+		path := exPath + "payload.dll"
+
+		if debugEnabled {
+			fmt.Println("[+] Debug symbols enabled !")
+			return exec.Command("go", "build", "-buildmode=c-shared", "-o", path, ".")
+		}
+
+		return exec.Command("go", "build", "-buildmode=c-shared", "-ldflags", "-s -w -H=windowsgui", "-o", path, ".")
+	}
+
+	fmt.Println("[+] Compiling as executable")
+	path := exPath + "payload.exe"
+
+	if debugEnabled {
+		fmt.Println("[+] Debug symbols enabled !")
+		return exec.Command("go", "build", "-o", path, ".")
+	}
+
+	return exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", path, ".")
 }

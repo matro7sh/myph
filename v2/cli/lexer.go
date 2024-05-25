@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/cmepw/myph/tools"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 const SoftwareVersion = "2.0.0"
@@ -74,16 +75,42 @@ func GetParser(opts *Options) *cobra.Command {
 
 			fmt.Println("[+] Writing to temp directory")
 
-			err = tools.WriteToFile(tempDir, "main.go", mainTemplate)
-			exitIfError(err)
-			err = tools.WriteToFile(tempDir, "exec.go", execTemplate)
-			exitIfError(err)
-			err = tools.WriteToFile(tempDir, "encrypt.go", encryptTemplate)
-			exitIfError(err)
+			errMain := tools.WriteToFile(tempDir, "main.go", mainTemplate)
+			errExec := tools.WriteToFile(tempDir, "exec.go", execTemplate)
+			errEncrypt := tools.WriteToFile(tempDir, "encrypt.go", encryptTemplate)
+			exitIfError(errMain)
+			exitIfError(errExec)
+			exitIfError(errEncrypt)
 
 			fmt.Println("[+] Compiling shellcode")
 
+			command := opts.CompileConfig.GetCompileCommand(opts.WithDebug)
+			command.Dir = tempDir
+
+			_, stderr := command.Output()
+			if stderr != nil {
+
+				commandStr := "go build -ldflags \"-s -w -H=windowsgui\" -o payload.exe"
+				if opts.CompileConfig.ArtefactType == PE_DLL {
+					commandStr = "CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc go build -buildmode=c-shared -ldflags \"-s -w -H=windowsgui\" -o payload.dll"
+				}
+
+				fmt.Printf("[!] error compiling shellcode: %s\n", stderr.Error())
+				fmt.Printf(
+					"\nYou may try to run the following command in %s to find out what happend:\n\n GOOS=%s GOARCH=%s %s\n\n",
+					tempDir,
+					opts.CompileConfig.OSTarget,
+					opts.CompileConfig.ArchTarget,
+					commandStr,
+				)
+
+				fmt.Println("If you want to submit a bug report, please add the output from this command...Thank you <3")
+				os.Exit(1)
+			}
+
 			fmt.Println("[+] Cleaning up build environment")
+			err = os.RemoveAll(tempDir)
+			exitIfError(err)
 
 		},
 	}
