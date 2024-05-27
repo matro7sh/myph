@@ -3,6 +3,7 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"github.com/cmepw/myph/internals"
 	"github.com/cmepw/myph/loaders"
 	"github.com/cmepw/myph/tools"
 	loadersv2 "github.com/cmepw/myph/v2/loaders"
@@ -14,7 +15,7 @@ import (
 // APIHashingConfig is stored in the Compilation profile and manages all things related to API-Hashing
 type APIHashingConfig struct {
 	IsEnabled bool
-	Technique apiHashTechnique
+	Technique ApiHashTechnique
 }
 
 // ProcessInjectionConfig stores all the information related to loading a Process Injection method
@@ -94,7 +95,7 @@ func DefaultOptions() Options {
 type outputType string
 type targetArch string
 type targetOS string
-type apiHashTechnique string
+type ApiHashTechnique string
 type encKind string
 type technique string
 
@@ -111,10 +112,10 @@ const (
 	ARM64 targetArch = "arm64"
 	I386  targetArch = "i386"
 
-	DJB2   apiHashTechnique = "DJB2"
-	SHA1   apiHashTechnique = "SHA1"
-	SHA256 apiHashTechnique = "SHA256"
-	SHA512 apiHashTechnique = "SHA512"
+	DJB2   ApiHashTechnique = "DJB2"
+	SHA1   ApiHashTechnique = "SHA1"
+	SHA256 ApiHashTechnique = "SHA256"
+	SHA512 ApiHashTechnique = "SHA512"
 
 	EncKindAES encKind = "AES"
 	EncKindXOR encKind = "XOR"
@@ -173,16 +174,16 @@ func (a *targetOS) Set(v string) error {
 	return nil
 }
 
-func (e *apiHashTechnique) String() string {
+func (e *ApiHashTechnique) String() string {
 	return string(*e)
 }
 
-func (e *apiHashTechnique) Set(v string) error {
+func (e *ApiHashTechnique) Set(v string) error {
 	err := validateString(v, []string{"DJB2", "SHA1", "SHA256", "SHA512"})
 	if err != nil {
 		return err
 	}
-	*e = apiHashTechnique(v)
+	*e = ApiHashTechnique(v)
 	return nil
 }
 
@@ -242,7 +243,7 @@ func (o *outputType) Type() string {
 	return "Target artefact binary type (exe, dll)"
 }
 
-func (e *apiHashTechnique) Type() string {
+func (e *ApiHashTechnique) Type() string {
 	return "API Hashing algorithm (DJB2, SHA1, SHA256, SHA512)"
 }
 
@@ -302,8 +303,7 @@ func (c CompilationProfile) GetExecutionTemplate() (string, error) {
 	var methods = map[technique]loadersv2.Templater{
 		SYSCALL: loadersv2.SyscallTemplate{
 			UseApiHashing: c.APIHashingConfig.IsEnabled,
-			HashMethod:    string(c.APIHashingConfig.Technique),
-			FunctionNames: []string{"VirtualAlloc", "RltCopyMemory", "VirtualProtect"},
+			HashMethod:    c.APIHashingConfig.Technique,
 		},
 		CreateThread: loaders.CreateTTemplate{
 			UseApiHashing: c.APIHashingConfig.IsEnabled,
@@ -386,6 +386,9 @@ __MAIN_STATEMENT__
 	template = strings.ReplaceAll(template, "__EXPORT_STATEMENT__", exportStatement)
 	template = strings.ReplaceAll(template, "__MAIN_STATEMENT__", mainStatement)
 
+	template = strings.ReplaceAll(template, "__KEY__", key)
+	template = strings.ReplaceAll(template, "__CODE__", shellcode)
+
 	return ""
 }
 
@@ -425,4 +428,18 @@ func (c CompilationProfile) GetCompileCommand(debugEnabled bool) *exec.Cmd {
 	}
 
 	return exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", path, ".")
+}
+
+func (a ApiHashTechnique) HashItem(item string) string {
+	switch a {
+	case DJB2:
+		return internals.HashDJB2(item)
+	case SHA1:
+		return internals.HashSHA1(item)
+	case SHA256:
+		return internals.HashSHA256(item)
+	case SHA512:
+		return internals.HashSHA512(item)
+	}
+	return item
 }

