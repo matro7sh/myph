@@ -3,20 +3,16 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"github.com/cmepw/myph/internals"
-	"github.com/cmepw/myph/loaders"
-	"github.com/cmepw/myph/tools"
-	loadersv2 "github.com/cmepw/myph/v2/loaders"
 	"os"
 	"os/exec"
 	"strings"
-)
 
-// APIHashingConfig is stored in the Compilation profile and manages all things related to API-Hashing
-type APIHashingConfig struct {
-	IsEnabled bool
-	Technique ApiHashTechnique
-}
+	"github.com/cmepw/myph/loaders"
+	"github.com/cmepw/myph/tools"
+	apihashing "github.com/cmepw/myph/v2/apiHashing"
+	loadersv2 "github.com/cmepw/myph/v2/loaders"
+	"github.com/cmepw/myph/v2/utils"
+)
 
 // ProcessInjectionConfig stores all the information related to loading a Process Injection method
 type ProcessInjectionConfig struct {
@@ -32,7 +28,7 @@ type ProcessInjectionConfig struct {
 type CompilationProfile struct {
 
 	// Win32 API hashing config
-	APIHashingConfig APIHashingConfig
+	APIHashingConfig apihashing.APIHashingConfig
 
 	// shellcode encryption method
 	ShellcodeEncryptionMethod encKind
@@ -77,9 +73,9 @@ func DefaultOptions() Options {
 			ArchTarget:                AMD64,
 			OSTarget:                  WINDOWS,
 			ShellcodeEncryptionMethod: EncKindXOR,
-			APIHashingConfig: APIHashingConfig{
+			APIHashingConfig: apihashing.APIHashingConfig{
 				IsEnabled: false,
-				Technique: DJB2,
+				Technique: apihashing.DJB2,
 			},
 			ShellcodeLoading: ProcessInjectionConfig{
 				SleepTime: 0,
@@ -95,7 +91,6 @@ func DefaultOptions() Options {
 type outputType string
 type targetArch string
 type targetOS string
-type ApiHashTechnique string
 type encKind string
 type technique string
 
@@ -111,11 +106,6 @@ const (
 	AMD64 targetArch = "amd64"
 	ARM64 targetArch = "arm64"
 	I386  targetArch = "i386"
-
-	DJB2   ApiHashTechnique = "DJB2"
-	SHA1   ApiHashTechnique = "SHA1"
-	SHA256 ApiHashTechnique = "SHA256"
-	SHA512 ApiHashTechnique = "SHA512"
 
 	EncKindAES encKind = "AES"
 	EncKindXOR encKind = "XOR"
@@ -140,7 +130,7 @@ func (a *outputType) String() string {
 }
 
 func (a *outputType) Set(value string) error {
-	err := validateString(value, []string{"exe", "dll"})
+	err := utils.ValidateString(value, []string{"exe", "dll"})
 	if err != nil {
 		return err
 	}
@@ -153,7 +143,7 @@ func (o *targetOS) String() string {
 }
 
 func (o *targetArch) Set(value string) error {
-	err := validateString(value, []string{"amd64", "arm64", "i386"})
+	err := utils.ValidateString(value, []string{"amd64", "arm64", "i386"})
 	if err != nil {
 		return err
 	}
@@ -166,24 +156,11 @@ func (a *targetArch) String() string {
 }
 
 func (a *targetOS) Set(v string) error {
-	err := validateString(v, []string{"windows", "linux", "darwin"})
+	err := utils.ValidateString(v, []string{"windows", "linux", "darwin"})
 	if err != nil {
 		return err
 	}
 	*a = targetOS(v)
-	return nil
-}
-
-func (e *ApiHashTechnique) String() string {
-	return string(*e)
-}
-
-func (e *ApiHashTechnique) Set(v string) error {
-	err := validateString(v, []string{"DJB2", "SHA1", "SHA256", "SHA512"})
-	if err != nil {
-		return err
-	}
-	*e = ApiHashTechnique(v)
 	return nil
 }
 
@@ -192,7 +169,7 @@ func (e *encKind) String() string {
 }
 
 func (e *encKind) Set(v string) error {
-	return validateString(v, []string{"AES", "XOR", "blowfish", "chacha20"})
+	return utils.ValidateString(v, []string{"AES", "XOR", "blowfish", "chacha20"})
 }
 
 func (e *technique) String() string {
@@ -200,7 +177,7 @@ func (e *technique) String() string {
 }
 
 func (e *technique) Set(v string) error {
-	err := validateString(
+	err := utils.ValidateString(
 		v,
 		[]string{
 			"CRT",
@@ -222,15 +199,6 @@ func (e *technique) Set(v string) error {
 	return nil
 }
 
-func validateString(v string, validStrings []string) error {
-	for _, s := range validStrings {
-		if v == s {
-			return nil
-		}
-	}
-	return errors.New("must be one of " + strings.Join(validStrings, "\", \""))
-}
-
 func (a *targetOS) Type() string {
 	return "Target (windows, linux, darwin)"
 }
@@ -241,10 +209,6 @@ func (a *targetArch) Type() string {
 
 func (o *outputType) Type() string {
 	return "Target artefact binary type (exe, dll)"
-}
-
-func (e *ApiHashTechnique) Type() string {
-	return "API Hashing algorithm (DJB2, SHA1, SHA256, SHA512)"
 }
 
 func (e *encKind) Type() string {
@@ -357,7 +321,7 @@ func entry() {
 	}
 
 	template := `
-package main 
+package main
 
 import (
 	"time"
@@ -428,18 +392,4 @@ func (c CompilationProfile) GetCompileCommand(debugEnabled bool) *exec.Cmd {
 	}
 
 	return exec.Command("go", "build", "-ldflags", "-s -w -H=windowsgui", "-o", path, ".")
-}
-
-func (a ApiHashTechnique) HashItem(item string) string {
-	switch a {
-	case DJB2:
-		return internals.HashDJB2(item)
-	case SHA1:
-		return internals.HashSHA1(item)
-	case SHA256:
-		return internals.HashSHA256(item)
-	case SHA512:
-		return internals.HashSHA512(item)
-	}
-	return item
 }
