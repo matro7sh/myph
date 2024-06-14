@@ -17,7 +17,7 @@ const AsciiArt = `
        ,:::::'       ;           OOO                      (1974 - 2016)
        ::::::;       ;          OOOOO
        ;:::::;       ;         OOOOOOOO
-      ,;::::::;     ;'         / OOOOOOO          
+      ,;::::::;     ;'         / OOOOOOO
     ;::::::::: . ,,,;.        /  / DOOOOOO
   .';:::::::::::::::::;,     /  /     DOOOO
  ,::::::;::::::;;;;::::;,   /  /        DOOO          AV evasion framework
@@ -53,7 +53,7 @@ func GetParser(opts *Options) *cobra.Command {
 			err = CreateTmpProjectRoot(tempDir)
 			exitIfError(err)
 
-			/* fetch the important dependencies to add in build environment */
+			/* fetch the important dependencies to add in build environment. Will exit program on error */
 			GetDependencies(opts, tempDir)
 
 			encryptionKey := tools.RandomString(32)

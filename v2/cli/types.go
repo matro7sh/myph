@@ -11,18 +11,9 @@ import (
 	"github.com/cmepw/myph/tools"
 	apihashing "github.com/cmepw/myph/v2/apiHashing"
 	loadersv2 "github.com/cmepw/myph/v2/loaders"
+	processinjection "github.com/cmepw/myph/v2/processInjection"
 	"github.com/cmepw/myph/v2/utils"
 )
-
-// ProcessInjectionConfig stores all the information related to loading a Process Injection method
-type ProcessInjectionConfig struct {
-	SleepTime int       // sleep-time before triggering the execution
-	Target    string    // TargetProcess
-	Technique technique // shellcode-loading technique
-
-	// TODO(djnn): add here ExecFunctionName && sleep-obfuscation method support
-	// maybe this object should also keep in memory the Win32 dependencies so that they can be loaded by APIHashingConfig
-}
 
 // CompilationProfile stores the compilation configuration (OS, Arch, Enable API-hashing ? etc.)
 type CompilationProfile struct {
@@ -34,7 +25,7 @@ type CompilationProfile struct {
 	ShellcodeEncryptionMethod encKind
 
 	// Shellcode loading technique
-	ShellcodeLoading ProcessInjectionConfig
+	ShellcodeLoading processinjection.ProcessInjectionConfig
 
 	// OS-target (Windows / Linux / darwin ?) Will be set as GOOS before calling compilation
 	OSTarget targetOS
@@ -77,10 +68,10 @@ func DefaultOptions() Options {
 				IsEnabled: false,
 				Technique: apihashing.DJB2,
 			},
-			ShellcodeLoading: ProcessInjectionConfig{
+			ShellcodeLoading: processinjection.ProcessInjectionConfig{
 				SleepTime: 0,
 				Target:    "notepad.exe",
-				Technique: SYSCALL,
+				Technique: processinjection.SYSCALL,
 			},
 		},
 	}
@@ -92,7 +83,6 @@ type outputType string
 type targetArch string
 type targetOS string
 type encKind string
-type technique string
 
 const (
 	PE_EXE outputType = "exe"
@@ -111,18 +101,6 @@ const (
 	EncKindXOR encKind = "XOR"
 	EncKindBLF encKind = "blowfish"
 	EncKindC20 encKind = "chacha20"
-
-	CRT               technique = "CRT"
-	CRTx              technique = "CRTx"
-	ETWP              technique = "Etwp"
-	SYSCALL           technique = "Syscall"
-	SYSCALLTEST       technique = "SyscallTest"
-	EnumTreeW         technique = "EnumTreeW"
-	NtCreateThreadEx  technique = "NtCreateThreadEx"
-	CreateFiber       technique = "CreateFiber"
-	CreateThread      technique = "CreateThread"
-	ProcessHollowing  technique = "ProcessHollowing"
-	EnumCalendarInfoA technique = "EnumCalendarInfoA"
 )
 
 func (a *outputType) String() string {
@@ -172,33 +150,6 @@ func (e *encKind) Set(v string) error {
 	return utils.ValidateString(v, []string{"AES", "XOR", "blowfish", "chacha20"})
 }
 
-func (e *technique) String() string {
-	return string(*e)
-}
-
-func (e *technique) Set(v string) error {
-	err := utils.ValidateString(
-		v,
-		[]string{
-			"CRT",
-			"CRTx",
-			"Etwp",
-			"Syscall",
-			"CreateFiber",
-			"NtCreateThreadEx",
-			"EnumCalendarInfoA",
-			"EnumTreeW",
-			"ProcessHollowing",
-			"CreateThread",
-		},
-	)
-	if err != nil {
-		return err
-	}
-	*e = technique(v)
-	return nil
-}
-
 func (a *targetOS) Type() string {
 	return "Target (windows, linux, darwin)"
 }
@@ -213,10 +164,6 @@ func (o *outputType) Type() string {
 
 func (e *encKind) Type() string {
 	return "Algorithm (XOR, AES, blowfish, chacha20)"
-}
-
-func (e *technique) Type() string {
-	return "Win32 (CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, NtCreateThreadEx, Etwp, Syscall, EnumTreeW, EnumCalendarInfoA)"
 }
 
 func (e encKind) Encrypt(shellcode []byte, key []byte, tempDirPath string) ([]byte, error) {
@@ -264,25 +211,25 @@ func (e encKind) GetTemplate() string {
 }
 
 func (c CompilationProfile) GetExecutionTemplate() (string, error) {
-	var methods = map[technique]loadersv2.Templater{
-		SYSCALL: loadersv2.SyscallTemplate{
+	var methods = map[processinjection.Technique]loadersv2.Templater{
+		processinjection.SYSCALL: loadersv2.SyscallTemplate{
 			UseApiHashing: c.APIHashingConfig.IsEnabled,
 			HashMethod:    c.APIHashingConfig.Technique,
 		},
-		CreateThread: loaders.CreateTTemplate{
+		processinjection.CreateThread: loaders.CreateTTemplate{
 			UseApiHashing: c.APIHashingConfig.IsEnabled,
 			HashMethod:    string(c.APIHashingConfig.Technique),
 		},
-		NtCreateThreadEx: loaders.NtCreateThreadExTemplate{
+		processinjection.NtCreateThreadEx: loaders.NtCreateThreadExTemplate{
 			UseApiHashing: c.APIHashingConfig.IsEnabled,
 			HashMethod:    string(c.APIHashingConfig.Technique),
 		},
-		CRT:               loaders.CRTTemplate{},
-		CRTx:              loaders.CRTxTemplate{},
-		ProcessHollowing:  loaders.ProcHollowTemplate{},
-		EnumCalendarInfoA: loaders.EnumCalendarTemplate{},
-		CreateFiber:       loaders.CreateFiberTemplate{},
-		EnumTreeW:         loaders.EnumTreeW{},
+		processinjection.CRT:               loaders.CRTTemplate{},
+		processinjection.CRTx:              loaders.CRTxTemplate{},
+		processinjection.ProcessHollowing:  loaders.ProcHollowTemplate{},
+		processinjection.EnumCalendarInfoA: loaders.EnumCalendarTemplate{},
+		processinjection.CreateFiber:       loaders.CreateFiberTemplate{},
+		processinjection.EnumTreeW:         loaders.EnumTreeW{},
 	}
 
 	if c.APIHashingConfig.IsEnabled {
