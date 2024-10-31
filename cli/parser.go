@@ -72,6 +72,7 @@ func BuildLoader(opts *Options) *exec.Cmd {
 func GetParser(opts *Options) *cobra.Command {
 
 	version := "1.2.3"
+
 	var spoofMetadata = &cobra.Command{
 		Use:                "spoof",
 		Version:            version,
@@ -337,12 +338,13 @@ func GetParser(opts *Options) *cobra.Command {
 		},
 	}
 
-	defaults := GetDefaultCLIOptions()
+	defaults := GetDefaultCLIOptions("")
 	var rootCmd = runLoader
 
 	rootCmd.AddCommand(spoofMetadata)
 
 	rootCmd.Flags().StringVarP(&opts.OutName, "out", "f", defaults.OutName, "output name")
+	rootCmd.Flags().StringVarP(&opts.BuildType, "binary", "b", defaults.BuildType, "Binary format (exe,dll)")
 	rootCmd.Flags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
 	rootCmd.Flags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
 	rootCmd.Flags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, NtCreateThreadEx, Syscall, SyscallTest, Etwp)")

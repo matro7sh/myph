@@ -5,10 +5,15 @@ import (
 )
 
 // Get default value for Options struct
-func GetDefaultCLIOptions() Options {
+func GetDefaultCLIOptions(buildType string) Options {
+
+	if buildType == "" {
+		buildType = "exe"
+	}
+
 	opts := Options{
 		ShellcodePath:   "msf.raw",
-		OutName:         "payload.exe",
+		OutName:         "payload",
 		OS:              "windows",
 		Arch:            "amd64",
 		Target:          "cmd.exe",
@@ -19,7 +24,7 @@ func GetDefaultCLIOptions() Options {
 		PEFilePath:      "payload.exe",
 		VersionFilePath: "goversion.json",
 		WithDebug:       false,
-		BuildType:       "exe",
+		BuildType:       buildType,
 		Persistence:     "",
 		UseAPIHashing:   false,
 		APIHashingType:  "DJB2",
