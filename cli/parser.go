@@ -334,7 +334,7 @@ func GetParser(opts *Options) *cobra.Command {
 			tools.MoveFile(MYPH_TMP_WITH_PAYLOAD+format, opts.OutName+"."+format)
 			os.RemoveAll(MYPH_TMP_DIR)
 
-			fmt.Printf("[+] Done! Compiled payload: %s\n", opts.OutName)
+			fmt.Printf("[+] Done! Compiled payload: %s\n", opts.OutName+"."+opts.BuildType)
 		},
 	}
 
