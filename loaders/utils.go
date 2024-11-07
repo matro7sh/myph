@@ -41,6 +41,7 @@ func SelectTemplate(templateName string, useApiHashing bool, apiHashTechnique st
 		"CreateFiber":       CreateFiberTemplate{},
 		"Etwp":              ETWPTemplate{},
 		"NtCreateThreadEx":  NtCreateThreadExTemplate{UseApiHashing: useApiHashing, HashMethod: apiHashTechnique},
+		"SetTimer":          SetTimerTemplate{},
 	}
 
 	if useApiHashing {

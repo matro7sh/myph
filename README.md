@@ -58,7 +58,7 @@ Flags:
   -p, --process string            target process to inject shellcode to (default "cmd.exe")
   -s, --shellcode string          shellcode path (default "msf.raw")
       --sleep-time uint           sleep time in seconds before executing loader (default: 0)
-  -t, --technique string          shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, NtCreateThreadEx, Syscall, SyscallTest, Etwp) (default "CRT")
+  -t, --technique string          shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, NtCreateThreadEx, Syscall, SyscallTest, Etwp, SetTimer) (default "CRT")
       --use-api-hashing           Use API Hashing
   -v, --version                   version for myph
 ```
@@ -75,6 +75,7 @@ This tool supports few methods for now, but aims to add more as time goes on:
 - CreateRemoteThread
 - EtwpCreateEtwThread
 - CreateRemoteThreadEx
+- SetTimer
 
 If you don't know what that is about, go check out [this repository](https://github.com/matro7sh/BypassAV) :)~
 
