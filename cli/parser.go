@@ -72,6 +72,7 @@ func BuildLoader(opts *Options) *exec.Cmd {
 func GetParser(opts *Options) *cobra.Command {
 
 	version := "1.2.3"
+
 	var spoofMetadata = &cobra.Command{
 		Use:                "spoof",
 		Version:            version,
@@ -333,7 +334,7 @@ func GetParser(opts *Options) *cobra.Command {
 			tools.MoveFile(MYPH_TMP_WITH_PAYLOAD+format, opts.OutName+"."+format)
 			os.RemoveAll(MYPH_TMP_DIR)
 
-			fmt.Printf("[+] Done! Compiled payload: %s\n", opts.OutName)
+			fmt.Printf("[+] Done! Compiled payload: %s\n", opts.OutName+"."+opts.BuildType)
 		},
 	}
 
@@ -343,6 +344,7 @@ func GetParser(opts *Options) *cobra.Command {
 	rootCmd.AddCommand(spoofMetadata)
 
 	rootCmd.Flags().StringVarP(&opts.OutName, "out", "f", defaults.OutName, "output name")
+	rootCmd.Flags().StringVarP(&opts.BuildType, "binary-format", "b", defaults.BuildType, "Binary format (exe,dll)")
 	rootCmd.Flags().StringVarP(&opts.ShellcodePath, "shellcode", "s", defaults.ShellcodePath, "shellcode path")
 	rootCmd.Flags().StringVarP(&opts.Target, "process", "p", defaults.Target, "target process to inject shellcode to")
 	rootCmd.Flags().StringVarP(&opts.Technique, "technique", "t", defaults.Technique, "shellcode-loading technique (allowed: CRT, CRTx, CreateFiber, ProcessHollowing, CreateThread, NtCreateThreadEx, Syscall, SyscallTest, Etwp)")
