@@ -5,8 +5,7 @@ import (
 )
 
 func main() {
-	var buildType string
-	opts := cli.GetDefaultCLIOptions(buildType)
+	opts := cli.GetDefaultCLIOptions()
 	parser := cli.GetParser(&opts)
 
 	parser.ExecuteC()
