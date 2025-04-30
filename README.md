@@ -49,6 +49,7 @@ Available Commands:
 
 Flags:
       --api-hashing-type string   Hashing algorithm used for API hashing (default "DJB2")
+  -b, --binary-format string   Binary format (exe,dll) (default "exe")
   -d, --debug                     builds binary with debug symbols
   -e, --encryption encKind        encryption method. (allowed: AES, chacha20, XOR, blowfish) (default AES)
   -h, --help                      help for myph
@@ -97,6 +98,10 @@ file ./something.exe
 # add some program metada
 ./myph spoof --pe something.exe --file .github/test-data/example.json
 ```
+
+#### Generate dll
+
+`./myph -s ~/opensource/myph/beacon.bin -t NtCreateThreadEx -b dll --out beacon.exe` 
 
 #### Using docker
 
